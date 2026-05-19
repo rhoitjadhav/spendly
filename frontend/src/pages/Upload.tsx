@@ -3,11 +3,19 @@ import { useQueryClient } from '@tanstack/react-query'
 import DropZone from '../components/DropZone'
 import UploadProgress from '../components/UploadProgress'
 import { uploadFile, type UploadJob } from '../api/upload'
+import { C } from '../lib/theme'
 
 const SOURCES = [
   { value: 'navi', label: 'Navi' },
   { value: 'phonepe', label: 'PhonePe' },
   { value: 'googlepay', label: 'Google Pay' },
+]
+
+const TIPS = [
+  'Export PDFs directly from the app — Navi, PhonePe, and Google Pay all support in-app statement exports.',
+  'Password-protected PDFs must be decrypted before uploading.',
+  'Upload one statement per file — separate uploads per month work best.',
+  'Transactions are deduplicated automatically, so re-uploading an older statement is safe.',
 ]
 
 export default function Upload() {
@@ -42,20 +50,35 @@ export default function Upload() {
     }
   }, [qc])
 
+  const cardStyle = {
+    background: C.surface,
+    border: `1px solid ${C.border}`,
+    borderRadius: 14,
+    transition: 'background .25s',
+  }
+
   return (
-    <div className="max-w-xl mx-auto space-y-5">
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Select App</h3>
-        <div className="flex gap-2">
+    <div style={{ maxWidth: 620, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div>
+        <h1 style={{ fontSize: 24, fontWeight: 700, color: C.t1, margin: '0 0 6px', letterSpacing: '-0.5px' }}>Upload Statement</h1>
+        <p style={{ fontSize: 14, color: C.t4, margin: 0 }}>Import your UPI statement PDF to auto-parse transactions.</p>
+      </div>
+
+      {/* Source selector */}
+      <div style={{ ...cardStyle, padding: '16px 20px' }}>
+        <h3 style={{ fontSize: 12, fontWeight: 600, color: C.t4, marginBottom: 12, letterSpacing: '.05em' }}>SELECT APP</h3>
+        <div style={{ display: 'flex', gap: 8 }}>
           {SOURCES.map(s => (
             <button
               key={s.value}
               onClick={() => setSource(s.value)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                source === s.value
-                  ? 'bg-brand-600 text-white border-brand-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
+              style={{
+                flex: 1, padding: '9px 0', borderRadius: 10, fontSize: 13, fontWeight: 600,
+                border: source === s.value ? `1.5px solid var(--accent)` : `1px solid ${C.border}`,
+                background: source === s.value ? C.accentSub : 'transparent',
+                color: source === s.value ? C.accentL : C.t3,
+                cursor: 'pointer', transition: 'all .15s',
+              }}
             >
               {s.label}
             </button>
@@ -64,18 +87,32 @@ export default function Upload() {
       </div>
 
       {!jobId && !uploading && <DropZone onFile={handleFile} />}
-      {uploading && <p className="text-sm text-gray-500 text-center">Uploading...</p>}
-      {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+      {uploading && <p style={{ fontSize: 13, color: C.t4, textAlign: 'center' }}>Uploading…</p>}
+      {error && <p style={{ fontSize: 13, color: '#f87171', textAlign: 'center' }}>{error}</p>}
       {jobId && <UploadProgress jobId={jobId} onComplete={handleComplete} />}
 
       {jobId && (
         <button
           onClick={() => { setJobId(null); setError(null) }}
-          className="w-full py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+          style={{
+            padding: '9px 0', fontSize: 13, border: `1px solid ${C.border}`,
+            borderRadius: 10, background: 'transparent', color: C.t3, cursor: 'pointer',
+          }}
         >
           Upload Another File
         </button>
       )}
+
+      {/* Tips */}
+      <div style={{ ...cardStyle, padding: '20px 24px' }}>
+        <h3 style={{ fontSize: 12, fontWeight: 600, color: C.t4, marginBottom: 12, letterSpacing: '.05em' }}>TIPS FOR BEST RESULTS</h3>
+        {TIPS.map((tip, i) => (
+          <div key={i} style={{ display: 'flex', gap: 10, marginBottom: i < TIPS.length - 1 ? 9 : 0, alignItems: 'flex-start' }}>
+            <span style={{ color: C.accent, fontSize: 14, marginTop: 1, flexShrink: 0 }}>·</span>
+            <span style={{ fontSize: 13, color: C.t4, lineHeight: 1.55 }}>{tip}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

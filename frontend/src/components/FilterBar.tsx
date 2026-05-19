@@ -19,8 +19,8 @@ const PRESETS = [
 function computeStart(id: string): string {
   const d = new Date()
   if (id === 'this-month') return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`
-  if (id === 'last-3') { d.setMonth(d.getMonth() - 3); return d.toISOString().slice(0, 10) }
-  if (id === 'last-6') { d.setMonth(d.getMonth() - 6); return d.toISOString().slice(0, 10) }
+  if (id === 'last-3') { d.setDate(1); d.setMonth(d.getMonth() - 2); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01` }
+  if (id === 'last-6') { d.setDate(1); d.setMonth(d.getMonth() - 5); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01` }
   if (id === 'this-year') return `${d.getFullYear()}-01-01`
   return ''
 }
