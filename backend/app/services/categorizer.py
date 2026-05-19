@@ -4,7 +4,6 @@ import logging
 import os
 import re
 
-from groq import AsyncGroq
 from mistralai.client import Mistral
 
 logger = logging.getLogger(__name__)
@@ -132,15 +131,10 @@ _SYSTEM = (
     "RULES: No explanation. No markdown. No extra text. Start with [ end with ]."
 )
 
-_client: AsyncGroq | None = None
+_CHUNK_SIZE = 50
 _mistral_client: Mistral | None = None
 
-
-def _get_client() -> AsyncGroq:
-    global _client
-    if _client is None:
-        _client = AsyncGroq(api_key=os.environ["GROQ_API_KEY"])
-    return _client
+_IGNORED_NOTES = {"paid via navi upi", "paid via navi", "null", ""}
 
 
 def _get_mistral_client() -> Mistral:
@@ -152,7 +146,7 @@ def _get_mistral_client() -> Mistral:
 
 def _keyword_categorize(description: str, note: str | None = None) -> str:
     parts = []
-    if note and note.lower() not in ("paid via navi upi", "paid via navi", "null", ""):
+    if note and note.lower() not in _IGNORED_NOTES:
         parts.append(note.lower())
     parts.append(description.lower())
     text = " ".join(parts)
@@ -163,34 +157,34 @@ def _keyword_categorize(description: str, note: str | None = None) -> str:
     return "Uncategorized"
 
 
-_CHUNK_SIZE = 50
-
-
-async def _categorize_chunk(chunk: list[tuple[str, str | None]]) -> list[str]:
-    """Categorize one chunk via Mistral, keyword fallback on failure."""
+def _build_prompt(chunk: list[tuple[str, str | None]]) -> str:
     lines = []
     for i, (description, note) in enumerate(chunk):
         parts = []
-        if note and note.lower() not in ("paid via navi upi", "paid via navi", "null", ""):
+        if note and note.lower() not in _IGNORED_NOTES:
             parts.append(f"Note: {note}")
         parts.append(f"Description: {description}")
         lines.append(f"{i+1}. {' | '.join(parts)}")
+    return f"Categorize exactly {len(chunk)} transactions:\n" + "\n".join(lines)
 
-    def _parse(raw: str) -> list[str] | None:
-        match = re.search(r'\[.*]', raw, re.DOTALL)
-        if not match:
-            return None
-        try:
-            cats = json.loads(match.group())
-        except json.JSONDecodeError:
-            return None
-        if isinstance(cats, list) and len(cats) == len(chunk):
-            return [c if c in CATEGORIES else "Uncategorized" for c in cats]
-        logger.warning("Mistral returned %d categories for %d transactions", len(cats) if isinstance(cats, list) else -1, len(chunk))
+
+def _parse_categories(raw: str, expected: int) -> list[str] | None:
+    match = re.search(r'\[.*]', raw, re.DOTALL)
+    if not match:
         return None
+    try:
+        cats = json.loads(match.group())
+    except json.JSONDecodeError:
+        return None
+    if isinstance(cats, list) and len(cats) == expected:
+        return [c if c in CATEGORIES else "Uncategorized" for c in cats]
+    logger.warning("Mistral returned %d categories for %d transactions",
+                   len(cats) if isinstance(cats, list) else -1, expected)
+    return None
 
-    user_msg = f"Categorize exactly {len(chunk)} transactions:\n" + "\n".join(lines)
 
+async def _categorize_chunk(chunk: list[tuple[str, str | None]]) -> list[str]:
+    user_msg = _build_prompt(chunk)
     for attempt in range(2):
         try:
             response = await _get_mistral_client().chat.complete_async(
@@ -201,7 +195,7 @@ async def _categorize_chunk(chunk: list[tuple[str, str | None]]) -> list[str]:
                 ],
                 temperature=0,
             )
-            result = _parse(response.choices[0].message.content.strip())
+            result = _parse_categories(response.choices[0].message.content.strip(), len(chunk))
             if result:
                 return result
             logger.warning("Mistral count mismatch on attempt %d, %s", attempt + 1,
@@ -225,9 +219,3 @@ async def categorize_batch(transactions: list[tuple[str, str | None]]) -> list[s
         logger.info("Categorizing chunk %d-%d of %d", i + 1, i + len(chunk), len(transactions))
         results.extend(await _categorize_chunk(chunk))
     return results
-
-
-class MistralAPIClient:
-    def __init__(self):
-        self._client = None
-
