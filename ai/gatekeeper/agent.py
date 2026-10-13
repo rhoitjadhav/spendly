@@ -1,0 +1,27 @@
+from base_agent import BaseAgent
+from common.utils import to_dict
+from core.llm import get_llm
+from gatekeeper.constants import GATEKEEPER_AGENT_SYSTEM_PROMPT
+from gatekeeper.schemas import GatekeeperChatRequest, GatekeeperAgentResponse
+
+
+class GatekeeperAgent(BaseAgent):
+    name = "gatekeeper"
+    system_prompt = GATEKEEPER_AGENT_SYSTEM_PROMPT
+    model = "zephyr"  # llama2 zephyr openchat orca2
+
+    def __init__(self):
+        self.llm = get_llm(self.model)
+
+    async def run(self, content: GatekeeperChatRequest) -> dict:
+        messages = [
+            {"role": "system", "content": self.system_prompt},
+            {"role": "user", "content": content.query}
+        ]
+
+        reply = self.llm.chat(
+            messages=messages,
+            system=self.system_prompt
+        )
+        print(reply)
+        return GatekeeperAgentResponse(**to_dict(reply))
