@@ -14,16 +14,10 @@ class GatekeeperAgent(BaseAgent):
         self.llm = get_llm(self.model)
 
     async def run(self, content: GatekeeperChatRequest) -> dict:
-        messages = [
-            {"role": "system", "content": self.system_prompt},
-            {"role": "user", "content": content.query}
-        ]
-
         reply = self.llm.chat(
-            messages=messages,
+            messages=[{"role": "user", "content": content.query}],
             system=self.system_prompt,
             format=GatekeeperAgentResponse.model_json_schema(),
             options={"temperature": 0}
         )
-        print(reply)
-        return GatekeeperAgentResponse(**to_dict(reply))
+        return GatekeeperAgentResponse(**to_dict(reply.message.content))
