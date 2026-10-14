@@ -17,10 +17,19 @@ class AnthropicLLM(BaseLLM):
         self._client = Anthropic()
         self.model = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
 
-    def chat(self, messages: list[dict], system: str = "") -> str:
+    def chat(
+        self,
+        messages: list[dict],
+        system: str = "",
+        max_tokens: float = 1024,
+        response_model: type[BaseModel] = None,
+    ) -> str:
         res = self._client.messages.create(
-            model=self.model, max_tokens=1024,
-            system=system, messages=messages
+            model=self.model,
+            max_tokens=max_tokens,
+            system=system,
+            messages=messages,
+            response_model=response_model,
         )
         return res.content[0].text
 
@@ -55,10 +64,18 @@ class OllamaLLM(BaseLLM):
         )
         self.model = os.getenv("OLLAMA_MODEL", model)
 
-    def chat(self, messages: list[dict], system: str = "") -> str:
+    def chat(
+        self,
+        messages: list[dict],
+        system: str = "",
+        format: dict = None,
+        options: dict = None,
+    ) -> str:
         res = self._client.chat(
             model=self.model,
-            messages=[{"role": "system", "content": system}, *messages]
+            messages=[{"role": "system", "content": system}, *messages],
+            format=format,
+            options=options,
         )
         return res["message"]["content"]
 
