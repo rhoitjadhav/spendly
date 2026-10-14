@@ -7,9 +7,11 @@ from gatekeeper.schemas import GatekeeperChatRequest, GatekeeperAgentResponse
 router = APIRouter(prefix="/api/v1", tags=["Gatekeeper"])
 
 
-@router.post("/query")
-async def query(
+@router.post("/chat")
+async def chat(
     payload: GatekeeperChatRequest,
-    agent: GatekeeperAgent = Depends(GatekeeperAgent)
+    gatekeeper_agent: GatekeeperAgent = Depends(GatekeeperAgent)
 ) -> GatekeeperAgentResponse:
-    return await agent.run(payload)
+    response = await gatekeeper_agent.run(payload)
+    if response.action in [ActionEnum.REJECT, ActionEnum.CLARIFY]:
+        return response
