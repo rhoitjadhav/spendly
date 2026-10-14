@@ -21,7 +21,9 @@ class GatekeeperAgent(BaseAgent):
 
         reply = self.llm.chat(
             messages=messages,
-            system=self.system_prompt
+            system=self.system_prompt,
+            format=GatekeeperAgentResponse.model_json_schema(),
+            options={"temperature": 0}
         )
         print(reply)
         return GatekeeperAgentResponse(**to_dict(reply))
