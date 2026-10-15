@@ -1,0 +1,2 @@
+class SQLBuilderAgentResponse:
+    sql: str
