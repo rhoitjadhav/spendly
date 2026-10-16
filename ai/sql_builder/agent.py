@@ -16,7 +16,7 @@ class SQLBuilderAgent(BaseAgent):
     def __init__(self):
         self._llm_client = LLM(self.model, self.provider).get_llm_client()
 
-    async def run(self, content: ModelQueryRequest) -> dict:
+    async def run(self, content: ModelQueryRequest) -> SQLBuilderAgentResponse:
         messages = [
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=content.query),

@@ -1,9 +1,10 @@
 from base_agent import BaseAgent
 from common.schemas import ModelQueryRequest
+from common.utils import to_dict
 from core.constants import ModelProvider
 from core.llm import LLM
 from gatekeeper.constants import GATEKEEPER_AGENT_SYSTEM_PROMPT
-from gatekeeper.schemas import GatekeeperAgentResponse
+from gatekeeper.schemas import ActionEnum, GatekeeperAgentResponse
 from langchain_core.messages import HumanMessage, SystemMessage
 
 
