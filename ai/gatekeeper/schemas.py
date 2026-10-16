@@ -1,5 +1,4 @@
 from enum import StrEnum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -44,8 +43,8 @@ class GatekeeperAgentResponse(BaseModel):
     category: CategoryEnum = Field(
         description="The functional category or domain the user's intent falls into."
     )
-    user_id: Optional[str]
-    clarification_needed: Optional[str] = Field(
+    user_id: str | None
+    clarification_needed: str | None = Field(
         default=None,
         description="The question or prompt to send back to the user. Only fill this if action is CLARIFY, otherwise null.",
     )

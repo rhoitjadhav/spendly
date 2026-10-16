@@ -11,7 +11,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 class GatekeeperAgent(BaseAgent):
     name = "gatekeeper"
     system_prompt = GATEKEEPER_AGENT_SYSTEM_PROMPT
-    model = "zephyr"  # llama2 zephyr openchat orca2
+    model = "zephyr:7b"  # llama2 zephyr:7b openchat orca2
     provider = ModelProvider.OLLAMA
 
     def __init__(self):
@@ -28,4 +28,4 @@ class GatekeeperAgent(BaseAgent):
         )
         reply = structured_llm.invoke(messages)
 
-        return reply["parsed"]
+        return reply
