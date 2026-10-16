@@ -4,6 +4,7 @@ from core.llm import get_llm
 from sql_builder.constants import SQLBUILDER_AGENT_SYSTEM_PROMPT
 from sql_builder.schemas import SQLBuilderAgentResponse
 from common.schemas import ModelQueryRequest
+from langchain_core.messages import HumanMessage, SystemMessage
 
 
 class SQLBuilderAgent(BaseAgent):
@@ -15,10 +16,14 @@ class SQLBuilderAgent(BaseAgent):
         self.llm = get_llm(self.model)
 
     async def run(self, content: ModelQueryRequest) -> dict:
-        reply = self.llm.chat(
-            messages=[{"role": "user", "content": content.query}],
-            system=self.system_prompt,
-            format=SQLBuilderAgentResponse.model_json_schema(),
-            options={"temperature": 0}
+        messages = [
+            SystemMessage(content=self.system_prompt),
+            HumanMessage(content=content.query)
+        ]
+
+        structured_llm = self._llm_client.with_structured_output(
+            GatekeeperAgentResponse
         )
-        return GatekeeperAgentResponse(**to_dict(reply.message.content))
+        reply = structured_llm.invoke(messages)
+
+        return reply["parsed"]

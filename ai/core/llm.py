@@ -1,10 +1,12 @@
+import os
 from abc import ABC, abstractmethod
 from ollama import Client
 from anthropic import Anthropic
 from mistralai.client import Mistral
 from openai import OpenAI
-
-import os
+from pydantic import BaseModel
+from core.constants import ModelProvider
+from langchain.chat_models import init_chat_model
 
 
 class BaseLLM(ABC):
@@ -96,3 +98,16 @@ def get_llm(model) -> BaseLLM:
             f"Unknown LLM_PROVIDER={provider!r}. Choose: {list(_PROVIDERS)}"
         )
     return cls(model)
+
+
+class LLM:
+    def __init__(model: str, provider: ModelProvider, temperatur: float = 1):
+        self._llm_client = init_chat_model(
+            model, model_provider=provider, temperature=temperature
+        )
+
+    def get_llm_client():
+        return self._llm_client
+
+    def with_structured_output(pydantic_model: type[BaseModel]):
+        return self._llm_client.with_structured_output(pydantic_model)
