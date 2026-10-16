@@ -1,9 +1,10 @@
+import uvicorn
 from fastapi import FastAPI
-from gatekeeper.routers import router as gatekeeper_router
+from routers import router
 
 app = FastAPI(title="Agents", version="1.0.0")
 
-app.include_router(gatekeeper_router)
+app.include_router(router)
 
-if __name__ == '__main__':
-    pass
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8100)

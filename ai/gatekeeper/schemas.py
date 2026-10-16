@@ -1,5 +1,5 @@
-from typing import Optional
 from enum import StrEnum
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -12,6 +12,7 @@ class ActionEnum(StrEnum):
     ACCEPT = "ACCEPT"
     REJECT = "REJECT"
     CLARIFY = "CLARIFY"
+
 
 class CategoryEnum(StrEnum):
     SPENDING = "spending"
@@ -31,9 +32,7 @@ class GatekeeperAgentResponse(BaseModel):
     confidence score, classification category, and context details.
     """
 
-    action: ActionEnum = Field(
-        description="The primary action to take on the request."
-    )
+    action: ActionEnum = Field(description="The primary action to take on the request.")
     confidence: float = Field(
         ge=0.0,
         le=1.0,
