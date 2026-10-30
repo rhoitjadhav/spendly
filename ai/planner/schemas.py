@@ -1,4 +1,3 @@
-from typing import Optional
 from enum import StrEnum
 
 from pydantic import BaseModel, Field
@@ -12,6 +11,7 @@ class ActionEnum(StrEnum):
     ACCEPT = "ACCEPT"
     REJECT = "REJECT"
     CLARIFY = "CLARIFY"
+
 
 class CategoryEnum(StrEnum):
     SPENDING = "spending"
@@ -31,9 +31,7 @@ class GatekeeperAgentResponse(BaseModel):
     confidence score, classification category, and context details.
     """
 
-    action: ActionEnum = Field(
-        description="The primary action to take on the request."
-    )
+    action: ActionEnum = Field(description="The primary action to take on the request.")
     confidence: float = Field(
         ge=0.0,
         le=1.0,
@@ -45,8 +43,8 @@ class GatekeeperAgentResponse(BaseModel):
     category: CategoryEnum = Field(
         description="The functional category or domain the user's intent falls into."
     )
-    user_id: Optional[str]
-    clarification_needed: Optional[str] = Field(
+    user_id: str | None
+    clarification_needed: str | None = Field(
         default=None,
         description="The question or prompt to send back to the user. Only fill this if action is CLARIFY, otherwise null.",
     )
