@@ -1,12 +1,12 @@
 from common.schemas import ChatResponse, ModelQueryRequest
 from fastapi import APIRouter
 from fastapi.params import Depends
-from gatekeeper.agent import GatekeeperAgent
-from gatekeeper.schemas import (
+from planner.agent import GatekeeperAgent
+from planner.schemas import (
     ActionEnum,
     GatekeeperAgentResponse,
 )
-from sql_builder.agent import SQLBuilderAgent
+from synthesizer.agent import SQLBuilderAgent
 
 router = APIRouter(prefix="/api/v1", tags=["Gatekeeper"])
 
