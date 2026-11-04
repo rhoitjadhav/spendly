@@ -1,6 +1,10 @@
+from dataclasses import dataclass
+from datetime import date, datetime, timedelta, timezone
 from enum import StrEnum
 
 from pydantic import BaseModel, Field
+
+IST = timezone(timedelta(hours=5, minutes=30), name="IST")
 
 
 class GatekeeperChatRequest(BaseModel):
@@ -48,3 +52,11 @@ class GatekeeperAgentResponse(BaseModel):
         default=None,
         description="The question or prompt to send back to the user. Only fill this if action is CLARIFY, otherwise null.",
     )
+
+
+@dataclass(frozen=True, slots=True)
+class DateContext:
+    today: date
+    month_start: date
+    prev_month_start: date
+    prev_month_end: date

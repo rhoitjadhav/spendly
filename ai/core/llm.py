@@ -1,5 +1,6 @@
 from core.constants import ModelProvider
 from langchain.chat_models import init_chat_model
+from langchain_core.language_models import BaseChatModel
 from pydantic import BaseModel
 
 
@@ -9,8 +10,11 @@ class LLM:
             model, model_provider=provider, temperature=temperature
         )
 
-    def get_llm_client(self):
+    def get_llm_client(self) -> BaseChatModel:
         return self._llm_client
 
     def with_structured_output(self, pydantic_model: type[BaseModel]):
         return self._llm_client.with_structured_output(pydantic_model)
+
+    def bind_tools(self, tools: list):
+        return self._llm_client.bind_tools(tools)
