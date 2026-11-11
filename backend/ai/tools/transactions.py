@@ -1,9 +1,14 @@
+from app.db.session import AsyncSessionLocal
+from app.models.transaction import Transaction
+from app.services.constants import CATEGORIES, Categories
+from common.utils import convert_to_date
 from langchain_core.tools import tool
+from sqlalchemy import func, select
 
 
 class TransactionsTools:
     @tool
-    def get_total_spending(self, start_date, end_date) -> int:
+    async def get_total_spending(self, start_date: str, end_date: str) -> int:
         """Get total spending based on start and end period
         e.g. How much did I spend last month?
         Args:
@@ -13,13 +18,48 @@ class TransactionsTools:
         Returns:
             Total spending for the given period
         """
+        start_date = convert_to_date(start_date)
+        end_date = convert_to_date(end_date)
+        async with AsyncSessionLocal() as session:
+            return await session.scalar(
+                select(func.coalesce(func.sum(Transaction.amount), 0)).where(
+                    Transaction.date.between(start_date, end_date)
+                )
+            )
 
     @tool
-    def get_category_breakdown(
-        self, start_date: str, end_date: str, category: str = None
+    async def get_category_breakdown(
+        self, start_date: str, end_date: str, category: Categories | None = None
     ):
-        """Spend per category, sorted desc. Optional filter to one category.
-        e.g. "Where does my money go?" / "How much on Food?" """
+        """
+        Get category breakdown based on start, end period and
+        category if mentioned otherwise all categories.
+
+        e.g. Where does my money go?, How much on Food?
+
+        Args:
+            start_date (str): First period (dd-mm-yyyy).
+            end_date (str): Last period (dd-mm-yyyy).
+            category (Categories | None): Categories to filter on.
+
+        """
+        stmt = (
+            select(
+                Transaction.category,
+                func.coalesce(func.sum(Transaction.amount), 0).label("total_amount"),
+            )
+            .group_by(Transaction.category)
+            .order_by(Transaction.date.desc())
+        )
+        if category is None:
+            stmt.where(Transaction.date.between(start_date, end_date))
+        else:
+            stmt.where(
+                Transaction.date.between(start_date, end_date),
+                Transaction.category == category,
+            )
+        async with AsyncSessionLocal() as session:
+            return session.execute(stmt).all()
 
     @tool
     def get_summary(self, month=None, year=None):  # "YYYY-MM"

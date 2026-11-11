@@ -28,17 +28,17 @@ services:
       start_period: 10s
 
   backend:
-    build: ./backend
+    build: ./backend/app
     ports:
       - "8000:8000"
-    env_file: .env
+    env_file: .env.example
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     volumes:
-      - ./backend:/app
+      - ./backend/app:/app
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     healthcheck:
       test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" ]
@@ -59,15 +59,16 @@ services:
       - ./backend:/app
     command: python -m arq app.workers.pdf_worker.WorkerSettings
 
-  agent:
+  ai:
     build: backend/ai
+    env_file: .env.example
     ports:
       - "8100:8100"
     depends_on:
-      backend:
+      postgres:
         condition: service_healthy
     volumes:
-      - ./ai:/app
+      - ./backend/ai:/app
     command: uvicorn main:app --host 0.0.0.0 --port 8100 --reload
     healthcheck:
       test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8100/health')" ]
