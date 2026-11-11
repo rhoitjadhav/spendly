@@ -1,10 +1,10 @@
-from base_agent import BaseAgent
-from common.schemas import ModelQueryRequest
-from core.constants import ModelProvider
-from core.llm import LLM
+from ai.base_agent import BaseAgent
+from ai.common.schemas import ModelQueryRequest
+from ai.core.constants import ModelProvider
+from ai.core.llm import LLM
+from ai.synthesizer.constants import SQLBUILDER_AGENT_SYSTEM_PROMPT
+from ai.synthesizer.schemas import SQLBuilderAgentResponse
 from langchain_core.messages import HumanMessage, SystemMessage
-from synthesizer.constants import SQLBUILDER_AGENT_SYSTEM_PROMPT
-from synthesizer.schemas import SQLBuilderAgentResponse
 
 
 class SQLBuilderAgent(BaseAgent):

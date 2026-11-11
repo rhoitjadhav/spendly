@@ -1,18 +1,28 @@
 # UPI Expense Tracker Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:
+> subagent-driven-development (recommended) or superpowers:executing-plans to
+> implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for
+> tracking.
 
-**Goal:** Build a full-stack UPI expense tracker that ingests PDFs from Navi, PhonePe, and Google Pay, categorizes transactions rule-based, and visualizes spending on a React dashboard with filters, search, and CSV export.
+**Goal:** Build a full-stack UPI expense tracker that ingests PDFs from Navi,
+PhonePe, and Google Pay, categorizes transactions rule-based, and visualizes
+spending on a React dashboard with filters, search, and CSV export.
 
-**Architecture:** FastAPI backend with async SQLAlchemy + PostgreSQL, Redis + arq for background PDF parsing, React + Vite SPA served via nginx. Upload returns `job_id` immediately; frontend polls until complete.
+**Architecture:** FastAPI backend with async SQLAlchemy + PostgreSQL, Redis +
+arq for background PDF parsing, React + Vite SPA served via nginx. Upload
+returns `job_id` immediately; frontend polls until complete.
 
-**Tech Stack:** Python 3.12 · FastAPI · SQLAlchemy 2.0 async · asyncpg · Alembic · pdfplumber · arq · Redis · React 18 · Vite · Tailwind CSS · shadcn/ui · Recharts · Zustand · TanStack Query · Docker Compose
+**Tech Stack:** Python 3.12 · FastAPI · SQLAlchemy 2.0 async · asyncpg ·
+Alembic · pdfplumber · arq · Redis · React 18 · Vite · Tailwind CSS ·
+shadcn/ui · Recharts · Zustand · TanStack Query · Docker Compose
 
 ---
 
 ## File Map
 
 ### Backend
+
 - `backend/main.py` — app factory, router registration, CORS
 - `backend/app/db/base.py` — SQLAlchemy DeclarativeBase
 - `backend/app/db/session.py` — async engine + session dependency
@@ -20,7 +30,8 @@
 - `backend/app/models/upload_job.py` — UploadJob ORM model
 - `backend/app/schemas/transaction.py` — TransactionResponse, TransactionUpdate
 - `backend/app/schemas/upload_job.py` — UploadJobResponse
-- `backend/app/schemas/stats.py` — SummaryStats, CategoryStat, MonthStat, DayStat, MerchantStat
+- `backend/app/schemas/stats.py` — SummaryStats, CategoryStat, MonthStat,
+  DayStat, MerchantStat
 - `backend/app/routers/upload.py` — POST /api/v1/upload
 - `backend/app/routers/jobs.py` — GET /api/v1/jobs/{job_id}
 - `backend/app/routers/transactions.py` — GET/PATCH/DELETE /api/v1/transactions
@@ -36,8 +47,8 @@
 - `backend/app/workers/pdf_worker.py` — arq job: process_pdf + WorkerSettings
 - `backend/alembic/env.py` — async Alembic env
 - `backend/alembic/versions/001_initial.py` — initial schema migration
-- `backend/requirements.txt`
-- `backend/Dockerfile`
+- `../../../backend/app/requirements.txt`
+- `../../../backend/app/Dockerfile`
 - `backend/pytest.ini`
 - `backend/tests/test_categorizer.py`
 - `backend/tests/test_filters.py`
@@ -46,21 +57,26 @@
 - `backend/tests/test_stats_router.py`
 
 ### Frontend
+
 - `frontend/src/main.tsx` — React entry + QueryClientProvider
 - `frontend/src/App.tsx` — BrowserRouter + routes
 - `frontend/src/api/client.ts` — axios instance
 - `frontend/src/api/transactions.ts` — list, patch, delete, export
-- `frontend/src/api/stats.ts` — summary, byCategory, byMonth, byDay, topMerchants
+- `frontend/src/api/stats.ts` — summary, byCategory, byMonth, byDay,
+  topMerchants
 - `frontend/src/api/upload.ts` — upload, pollJob
-- `frontend/src/store/filterStore.ts` — Zustand: category, startDate, endDate, search
+- `frontend/src/store/filterStore.ts` — Zustand: category, startDate, endDate,
+  search
 - `frontend/src/components/Layout.tsx` — sidebar + topbar
-- `frontend/src/components/FilterBar.tsx` — date pickers + category dropdown + search
+- `frontend/src/components/FilterBar.tsx` — date pickers + category dropdown +
+  search
 - `frontend/src/components/StatsBar.tsx` — 4 KPI cards
 - `frontend/src/components/CategoryChart.tsx` — Recharts PieChart
 - `frontend/src/components/MonthlyChart.tsx` — Recharts LineChart
 - `frontend/src/components/DailyChart.tsx` — Recharts BarChart
 - `frontend/src/components/TopMerchants.tsx` — ranked merchant list
-- `frontend/src/components/TransactionTable.tsx` — paginated table + inline category edit
+- `frontend/src/components/TransactionTable.tsx` — paginated table + inline
+  category edit
 - `frontend/src/components/DropZone.tsx` — drag+drop PDF
 - `frontend/src/components/UploadProgress.tsx` — polls job, shows result
 - `frontend/src/pages/Dashboard.tsx`
@@ -74,6 +90,7 @@
 - `frontend/nginx.conf`
 
 ### Root
+
 - `docker-compose.yml`
 - `.env.example`
 - `.gitignore`
@@ -83,11 +100,12 @@
 ## Task 1: Project scaffold + Docker Compose
 
 **Files:**
+
 - Create: `docker-compose.yml`
 - Create: `.env.example`
 - Create: `.gitignore`
-- Create: `backend/requirements.txt`
-- Create: `backend/Dockerfile`
+- Create: `../../../backend/app/requirements.txt`
+- Create: `../../../backend/app/Dockerfile`
 - Create: `frontend/Dockerfile`
 - Create: `frontend/nginx.conf`
 
@@ -132,7 +150,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U upi -d upi_tracker"]
+      test: [ "CMD-SHELL", "pg_isready -U upi -d upi_tracker" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -142,7 +160,7 @@ services:
     ports:
       - "6379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -184,7 +202,7 @@ volumes:
   postgres_data:
 ```
 
-- [ ] **Step 4: Create `backend/requirements.txt`**
+- [ ] **Step 4: Create `../../../backend/app/requirements.txt`**
 
 ```
 fastapi==0.115.0
@@ -205,7 +223,7 @@ pytest-asyncio==0.24.0
 httpx==0.27.2
 ```
 
-- [ ] **Step 5: Create `backend/Dockerfile`**
+- [ ] **Step 5: Create `../../../backend/app/Dockerfile`**
 
 ```dockerfile
 FROM python:3.12-slim
@@ -271,6 +289,7 @@ git commit -m "chore: project scaffold, Docker Compose, requirements"
 ## Task 2: Backend — DB base, models, Alembic
 
 **Files:**
+
 - Create: `backend/app/__init__.py`
 - Create: `backend/app/db/__init__.py`
 - Create: `backend/app/db/base.py`
@@ -338,7 +357,8 @@ class Transaction(Base):
     account: Mapped[str] = mapped_column(String(200))
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     raw_text: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime,
+                                                 server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
     )
@@ -373,7 +393,8 @@ class UploadJob(Base):
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     total_parsed: Mapped[int | None] = mapped_column(Integer, nullable=True)
     total_saved: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime,
+                                                 server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
     )
@@ -390,7 +411,8 @@ app = FastAPI(title="UPI Tracker", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(","),
+    allow_origins=os.environ.get("CORS_ORIGINS",
+                                 "http://localhost:3000").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -412,6 +434,7 @@ asyncio_mode = auto
 - [ ] **Step 7: Set up Alembic**
 
 Run inside the backend directory (or inside the container):
+
 ```bash
 cd backend
 pip install -r requirements.txt
@@ -441,7 +464,8 @@ target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
     url = os.environ["DATABASE_URL"]
-    context.configure(url=url, target_metadata=target_metadata, literal_binds=True)
+    context.configure(url=url, target_metadata=target_metadata,
+                      literal_binds=True)
     with context.begin_transaction():
         context.run_migrations()
 
@@ -511,7 +535,8 @@ def upgrade() -> None:
         sa.Column("id", UUID(as_uuid=True), primary_key=True),
         sa.Column("filename", sa.String(255), nullable=False),
         sa.Column("source", sa.String(20), nullable=False),
-        sa.Column("status", sa.String(20), nullable=False, server_default="pending"),
+        sa.Column("status", sa.String(20), nullable=False,
+                  server_default="pending"),
         sa.Column("error", sa.Text, nullable=True),
         sa.Column("total_parsed", sa.Integer, nullable=True),
         sa.Column("total_saved", sa.Integer, nullable=True),
@@ -546,6 +571,7 @@ git commit -m "feat: DB models, Alembic migration, FastAPI skeleton"
 ## Task 3: Pydantic schemas
 
 **Files:**
+
 - Create: `backend/app/schemas/__init__.py`
 - Create: `backend/app/schemas/transaction.py`
 - Create: `backend/app/schemas/upload_job.py`
@@ -662,6 +688,7 @@ git commit -m "feat: Pydantic response schemas"
 ## Task 4: Categorization service
 
 **Files:**
+
 - Create: `backend/app/services/__init__.py`
 - Create: `backend/app/services/categorizer.py`
 - Create: `backend/tests/__init__.py`
@@ -807,6 +834,7 @@ git commit -m "feat: rule-based categorization service with tests"
 ## Task 5: Filter service
 
 **Files:**
+
 - Create: `backend/app/services/filters.py`
 - Create: `backend/tests/test_filters.py`
 
@@ -906,6 +934,7 @@ git commit -m "feat: transaction filter rules with tests"
 ## Task 6: Parser base + Navi parser
 
 **Files:**
+
 - Create: `backend/app/parsers/__init__.py`
 - Create: `backend/app/parsers/base.py`
 - Create: `backend/app/parsers/navi.py`
@@ -981,7 +1010,8 @@ def make_navi_pdf(rows: list[tuple]) -> bytes:
     c = canvas.Canvas(buf, pagesize=A4)
     c.setFont("Helvetica-Bold", 10)
     c.drawString(50, 800, "Navi UPI Statement")
-    c.drawString(50, 780, "Date        Description                    Account          Amount      Note")
+    c.drawString(50, 780,
+                 "Date        Description                    Account          Amount      Note")
     c.setFont("Helvetica", 9)
     y = 760
     for row in rows:
@@ -1015,7 +1045,8 @@ def test_navi_parses_multiple_rows():
     assert len(txns) == 2
 ```
 
-Add `reportlab` to `backend/requirements.txt`:
+Add `reportlab` to `../../../backend/app/requirements.txt`:
+
 ```
 reportlab==4.2.5
 ```
@@ -1051,11 +1082,11 @@ class NaviParser(BaseParser):
 
     # Matches lines like: 14/01/2025  Payment to Swiggy  user@upi  -250.00  food
     ROW_PATTERN = re.compile(
-        r"(\d{2}/\d{2}/\d{4})\s+"       # date
-        r"(.+?)\s{2,}"                   # description (2+ spaces as separator)
-        r"([\w@.]+)\s+"                  # account
-        r"(-?\d+(?:\.\d{2})?)"           # amount
-        r"(?:\s+(.+))?"                  # optional note
+        r"(\d{2}/\d{2}/\d{4})\s+"  # date
+        r"(.+?)\s{2,}"  # description (2+ spaces as separator)
+        r"([\w@.]+)\s+"  # account
+        r"(-?\d+(?:\.\d{2})?)"  # amount
+        r"(?:\s+(.+))?"  # optional note
     )
 
     def parse(self, file_bytes: bytes) -> list[RawTransaction]:
@@ -1108,6 +1139,7 @@ git commit -m "feat: BaseParser, NaviParser with tests"
 ## Task 7: PhonePe + Google Pay parsers
 
 **Files:**
+
 - Create: `backend/app/parsers/phonepe.py`
 - Create: `backend/app/parsers/googlepay.py`
 - Create: `backend/app/parsers/detector.py`
@@ -1128,7 +1160,8 @@ def make_phonepe_pdf(rows: list[tuple]) -> bytes:
     c = canvas.Canvas(buf, pagesize=A4)
     c.setFont("Helvetica-Bold", 10)
     c.drawString(50, 800, "PhonePe Transaction History")
-    c.drawString(50, 780, "Date & Time           Description                    Amount")
+    c.drawString(50, 780,
+                 "Date & Time           Description                    Amount")
     c.setFont("Helvetica", 9)
     y = 760
     for row in rows:
@@ -1224,8 +1257,8 @@ class PhonePeParser(BaseParser):
 
     ROW_PATTERN = re.compile(
         r"(\d{1,2}\s+\w{3}\s+\d{4}\s+\d{2}:\d{2})\s+"  # date+time
-        r"(.+?)\s{2,}"                                    # description
-        r"(-?\d+(?:\.\d{2})?)\s*(Dr|Cr)?"                # amount + direction
+        r"(.+?)\s{2,}"  # description
+        r"(-?\d+(?:\.\d{2})?)\s*(Dr|Cr)?"  # amount + direction
     )
 
     def parse(self, file_bytes: bytes) -> list[RawTransaction]:
@@ -1238,7 +1271,8 @@ class PhonePeParser(BaseParser):
                 continue
             date_str, description, amount_str, direction = match.groups()
             try:
-                txn_date = datetime.strptime(date_str.strip(), "%d %b %Y %H:%M").date()
+                txn_date = datetime.strptime(date_str.strip(),
+                                             "%d %b %Y %H:%M").date()
                 amount = Decimal(amount_str)
                 if direction == "Dr" and amount > 0:
                     amount = -amount
@@ -1279,9 +1313,9 @@ class GooglePayParser(BaseParser):
     """
 
     ROW_PATTERN = re.compile(
-        r"(\w{3}\s+\d{1,2},\s+\d{4})\s+"   # date
-        r"(.+?)\s{2,}"                        # description
-        r"(-?\d+(?:\.\d{2})?)"               # amount
+        r"(\w{3}\s+\d{1,2},\s+\d{4})\s+"  # date
+        r"(.+?)\s{2,}"  # description
+        r"(-?\d+(?:\.\d{2})?)"  # amount
     )
 
     def parse(self, file_bytes: bytes) -> list[RawTransaction]:
@@ -1294,7 +1328,8 @@ class GooglePayParser(BaseParser):
                 continue
             date_str, description, amount_str = match.groups()
             try:
-                txn_date = datetime.strptime(date_str.strip(), "%b %d, %Y").date()
+                txn_date = datetime.strptime(date_str.strip(),
+                                             "%b %d, %Y").date()
                 amount = Decimal(amount_str)
             except (ValueError, InvalidOperation):
                 continue
@@ -1357,6 +1392,7 @@ git commit -m "feat: PhonePeParser, GooglePayParser, source detector"
 ## Task 8: arq worker
 
 **Files:**
+
 - Create: `backend/app/workers/__init__.py`
 - Create: `backend/app/workers/pdf_worker.py`
 
@@ -1474,6 +1510,7 @@ git commit -m "feat: arq PDF processing worker"
 ## Task 9: Upload + Jobs routers
 
 **Files:**
+
 - Create: `backend/app/routers/__init__.py`
 - Create: `backend/app/routers/upload.py`
 - Create: `backend/app/routers/jobs.py`
@@ -1508,20 +1545,23 @@ async def get_redis() -> arq.ArqRedis:
 
 @router.post("/upload", response_model=UploadJobResponse, status_code=201)
 async def upload_pdf(
-    file: UploadFile = File(...),
-    source: str = Form(...),
-    session: AsyncSession = Depends(get_session),
-    redis: arq.ArqRedis = Depends(get_redis),
+        file: UploadFile = File(...),
+        source: str = Form(...),
+        session: AsyncSession = Depends(get_session),
+        redis: arq.ArqRedis = Depends(get_redis),
 ) -> UploadJobResponse:
     if source not in VALID_SOURCES:
         raise HTTPException(
             status_code=400,
-            detail={"detail": f"Invalid source. Must be one of {VALID_SOURCES}", "code": "INVALID_SOURCE"},
+            detail={
+                "detail": f"Invalid source. Must be one of {VALID_SOURCES}",
+                "code": "INVALID_SOURCE"},
         )
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=400,
-            detail={"detail": "Only PDF files are accepted", "code": "INVALID_FILE_TYPE"},
+            detail={"detail": "Only PDF files are accepted",
+                    "code": "INVALID_FILE_TYPE"},
         )
 
     file_bytes = await file.read()
@@ -1558,10 +1598,11 @@ router = APIRouter(prefix="/api/v1", tags=["Jobs"])
 
 @router.get("/jobs/{job_id}", response_model=UploadJobResponse)
 async def get_job(
-    job_id: uuid.UUID,
-    session: AsyncSession = Depends(get_session),
+        job_id: uuid.UUID,
+        session: AsyncSession = Depends(get_session),
 ) -> UploadJobResponse:
-    result = await session.execute(select(UploadJob).where(UploadJob.id == job_id))
+    result = await session.execute(
+        select(UploadJob).where(UploadJob.id == job_id))
     job = result.scalar_one_or_none()
     if not job:
         raise HTTPException(
@@ -1585,7 +1626,8 @@ app = FastAPI(title="UPI Tracker", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(","),
+    allow_origins=os.environ.get("CORS_ORIGINS",
+                                 "http://localhost:3000").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -1609,7 +1651,8 @@ REDIS_URL=redis://localhost:6379 \
 uvicorn main:app --reload --port 8000
 ```
 
-Expected: `Application startup complete.` — hit `http://localhost:8000/docs` to see upload + jobs endpoints.
+Expected: `Application startup complete.` — hit `http://localhost:8000/docs` to
+see upload + jobs endpoints.
 
 - [ ] **Step 5: Commit**
 
@@ -1623,6 +1666,7 @@ git commit -m "feat: upload and job polling endpoints"
 ## Task 10: Transactions router
 
 **Files:**
+
 - Create: `backend/app/routers/transactions.py`
 - Modify: `backend/main.py`
 
@@ -1638,17 +1682,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
 from app.models.transaction import Transaction
-from app.schemas.transaction import TransactionListResponse, TransactionResponse, TransactionUpdate
+from app.schemas.transaction import TransactionListResponse,
+    TransactionResponse, TransactionUpdate
 
 router = APIRouter(prefix="/api/v1", tags=["Transactions"])
 
 
 def build_filters(
-    model,
-    category: str | None,
-    start: date | None,
-    end: date | None,
-    search: str | None,
+        model,
+        category: str | None,
+        start: date | None,
+        end: date | None,
+        search: str | None,
 ):
     conditions = []
     if category:
@@ -1664,13 +1709,13 @@ def build_filters(
 
 @router.get("/transactions", response_model=TransactionListResponse)
 async def list_transactions(
-    category: str | None = Query(None),
-    start: date | None = Query(None),
-    end: date | None = Query(None),
-    search: str | None = Query(None),
-    limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    session: AsyncSession = Depends(get_session),
+        category: str | None = Query(None),
+        start: date | None = Query(None),
+        end: date | None = Query(None),
+        search: str | None = Query(None),
+        limit: int = Query(50, ge=1, le=500),
+        offset: int = Query(0, ge=0),
+        session: AsyncSession = Depends(get_session),
 ) -> TransactionListResponse:
     filters = build_filters(Transaction, category, start, end, search)
 
@@ -1696,9 +1741,9 @@ async def list_transactions(
 
 @router.patch("/transactions/{txn_id}", response_model=TransactionResponse)
 async def update_transaction(
-    txn_id: uuid.UUID,
-    payload: TransactionUpdate,
-    session: AsyncSession = Depends(get_session),
+        txn_id: uuid.UUID,
+        payload: TransactionUpdate,
+        session: AsyncSession = Depends(get_session),
 ) -> TransactionResponse:
     result = await session.execute(
         select(Transaction).where(Transaction.id == txn_id)
@@ -1707,7 +1752,8 @@ async def update_transaction(
     if not txn:
         raise HTTPException(
             status_code=404,
-            detail={"detail": "Transaction not found", "code": "TRANSACTION_NOT_FOUND"},
+            detail={"detail": "Transaction not found",
+                    "code": "TRANSACTION_NOT_FOUND"},
         )
     if payload.category is not None:
         txn.category = payload.category
@@ -1720,8 +1766,8 @@ async def update_transaction(
 
 @router.delete("/transactions/{txn_id}", status_code=204)
 async def delete_transaction(
-    txn_id: uuid.UUID,
-    session: AsyncSession = Depends(get_session),
+        txn_id: uuid.UUID,
+        session: AsyncSession = Depends(get_session),
 ) -> None:
     result = await session.execute(
         select(Transaction).where(Transaction.id == txn_id)
@@ -1730,7 +1776,8 @@ async def delete_transaction(
     if not txn:
         raise HTTPException(
             status_code=404,
-            detail={"detail": "Transaction not found", "code": "TRANSACTION_NOT_FOUND"},
+            detail={"detail": "Transaction not found",
+                    "code": "TRANSACTION_NOT_FOUND"},
         )
     await session.delete(txn)
     await session.commit()
@@ -1739,8 +1786,10 @@ async def delete_transaction(
 - [ ] **Step 2: Register router in `backend/main.py`**
 
 Add to imports and register:
+
 ```python
 from app.routers.transactions import router as transactions_router
+
 # ...
 app.include_router(transactions_router)
 ```
@@ -1757,6 +1806,7 @@ git commit -m "feat: transactions CRUD router"
 ## Task 11: Stats + Export routers
 
 **Files:**
+
 - Create: `backend/app/routers/stats.py`
 - Create: `backend/app/routers/export.py`
 - Modify: `backend/main.py`
@@ -1774,38 +1824,43 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.models.transaction import Transaction
 from app.routers.transactions import build_filters
-from app.schemas.stats import CategoryStat, DayStat, MerchantStat, MonthStat, SummaryStats
+from app.schemas.stats import CategoryStat, DayStat, MerchantStat, MonthStat,
+    SummaryStats
 
 router = APIRouter(prefix="/api/v1/stats", tags=["Stats"])
 
 
 def common_filters(
-    category: str | None = Query(None),
-    start: date | None = Query(None),
-    end: date | None = Query(None),
-    search: str | None = Query(None),
+        category: str | None = Query(None),
+        start: date | None = Query(None),
+        end: date | None = Query(None),
+        search: str | None = Query(None),
 ):
     return build_filters(Transaction, category, start, end, search)
 
 
 @router.get("/summary", response_model=SummaryStats)
 async def summary(
-    filters=Depends(common_filters),
-    session: AsyncSession = Depends(get_session),
+        filters=Depends(common_filters),
+        session: AsyncSession = Depends(get_session),
 ) -> SummaryStats:
     result = await session.execute(
         select(
             func.coalesce(func.sum(Transaction.amount), 0).label("total"),
             func.count(Transaction.id).label("count"),
-            func.coalesce(func.min(Transaction.date), func.current_date()).label("min_date"),
-            func.coalesce(func.max(Transaction.date), func.current_date()).label("max_date"),
+            func.coalesce(func.min(Transaction.date),
+                          func.current_date()).label("min_date"),
+            func.coalesce(func.max(Transaction.date),
+                          func.current_date()).label("max_date"),
         ).where(*filters)
     )
     row = result.one()
     total = Decimal(str(row.total))
     count = row.count
     if count == 0:
-        return SummaryStats(total_spend=Decimal("0"), transaction_count=0, avg_per_month=Decimal("0"), avg_per_day=Decimal("0"))
+        return SummaryStats(total_spend=Decimal("0"), transaction_count=0,
+                            avg_per_month=Decimal("0"),
+                            avg_per_day=Decimal("0"))
 
     days = max((row.max_date - row.min_date).days, 1)
     months = max(days / 30, 1)
@@ -1820,8 +1875,8 @@ async def summary(
 
 @router.get("/by-category", response_model=list[CategoryStat])
 async def by_category(
-    filters=Depends(common_filters),
-    session: AsyncSession = Depends(get_session),
+        filters=Depends(common_filters),
+        session: AsyncSession = Depends(get_session),
 ) -> list[CategoryStat]:
     result = await session.execute(
         select(
@@ -1834,15 +1889,16 @@ async def by_category(
         .order_by(func.sum(Transaction.amount).desc())
     )
     return [
-        CategoryStat(category=row.category, total=Decimal(str(row.total)), count=row.count)
+        CategoryStat(category=row.category, total=Decimal(str(row.total)),
+                     count=row.count)
         for row in result.all()
     ]
 
 
 @router.get("/by-month", response_model=list[MonthStat])
 async def by_month(
-    filters=Depends(common_filters),
-    session: AsyncSession = Depends(get_session),
+        filters=Depends(common_filters),
+        session: AsyncSession = Depends(get_session),
 ) -> list[MonthStat]:
     result = await session.execute(
         select(
@@ -1855,15 +1911,16 @@ async def by_month(
         .order_by("month")
     )
     return [
-        MonthStat(month=row.month, total=Decimal(str(row.total)), count=row.count)
+        MonthStat(month=row.month, total=Decimal(str(row.total)),
+                  count=row.count)
         for row in result.all()
     ]
 
 
 @router.get("/by-day", response_model=list[DayStat])
 async def by_day(
-    filters=Depends(common_filters),
-    session: AsyncSession = Depends(get_session),
+        filters=Depends(common_filters),
+        session: AsyncSession = Depends(get_session),
 ) -> list[DayStat]:
     result = await session.execute(
         select(
@@ -1883,9 +1940,9 @@ async def by_day(
 
 @router.get("/top-merchants", response_model=list[MerchantStat])
 async def top_merchants(
-    limit: int = Query(10, ge=1, le=50),
-    filters=Depends(common_filters),
-    session: AsyncSession = Depends(get_session),
+        limit: int = Query(10, ge=1, le=50),
+        filters=Depends(common_filters),
+        session: AsyncSession = Depends(get_session),
 ) -> list[MerchantStat]:
     result = await session.execute(
         select(
@@ -1899,7 +1956,8 @@ async def top_merchants(
         .limit(limit)
     )
     return [
-        MerchantStat(merchant=row.merchant, total=Decimal(str(row.total)), count=row.count)
+        MerchantStat(merchant=row.merchant, total=Decimal(str(row.total)),
+                     count=row.count)
         for row in result.all()
     ]
 ```
@@ -1925,11 +1983,11 @@ router = APIRouter(prefix="/api/v1/export", tags=["Export"])
 
 @router.get("/csv")
 async def export_csv(
-    category: str | None = Query(None),
-    start: date | None = Query(None),
-    end: date | None = Query(None),
-    search: str | None = Query(None),
-    session: AsyncSession = Depends(get_session),
+        category: str | None = Query(None),
+        start: date | None = Query(None),
+        end: date | None = Query(None),
+        search: str | None = Query(None),
+        session: AsyncSession = Depends(get_session),
 ) -> StreamingResponse:
     filters = build_filters(Transaction, category, start, end, search)
     result = await session.execute(
@@ -1940,7 +1998,8 @@ async def export_csv(
     output = io.StringIO()
     writer = csv.DictWriter(
         output,
-        fieldnames=["Date", "Description", "Merchant", "Amount", "Category", "Account", "Note", "Source"],
+        fieldnames=["Date", "Description", "Merchant", "Amount", "Category",
+                    "Account", "Note", "Source"],
     )
     writer.writeheader()
     for txn in transactions:
@@ -1961,7 +2020,8 @@ async def export_csv(
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=transactions.csv"},
+        headers={
+            "Content-Disposition": "attachment; filename=transactions.csv"},
     )
 ```
 
@@ -1985,7 +2045,8 @@ app = FastAPI(title="UPI Tracker", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(","),
+    allow_origins=os.environ.get("CORS_ORIGINS",
+                                 "http://localhost:3000").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -2023,6 +2084,7 @@ git commit -m "feat: stats and CSV export routers"
 ## Task 12: Frontend — Vite + React scaffold
 
 **Files:**
+
 - Create: `frontend/package.json`
 - Create: `frontend/vite.config.ts`
 - Create: `frontend/tailwind.config.ts`
@@ -2145,15 +2207,15 @@ export default {
 ```html
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>UPI Tracker</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+</head>
+<body>
+<div id="root"></div>
+<script type="module" src="/src/main.tsx"></script>
+</body>
 </html>
 ```
 
@@ -2198,25 +2260,44 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 - [ ] **Step 8: Create `frontend/src/App.tsx`**
 
 ```typescript
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Transactions from './pages/Transactions'
 import Upload from './pages/Upload'
 
 export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="transactions" element={<Transactions />} />
-          <Route path="upload" element={<Upload />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
-  )
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route path = "/"
+    element = { < Layout / >
+}>
+    <Route index
+    element = { < Navigate
+    to = "/dashboard"
+    replace / >
+}
+    />
+    < Route
+    path = "dashboard"
+    element = { < Dashboard / >
+}
+    />
+    < Route
+    path = "transactions"
+    element = { < Transactions / >
+}
+    />
+    < Route
+    path = "upload"
+    element = { < Upload / >
+}
+    />
+    < /Route>
+    < /Routes>
+    < /BrowserRouter>
+)
 }
 ```
 
@@ -2242,6 +2323,7 @@ git commit -m "feat: React + Vite frontend scaffold"
 ## Task 13: Frontend — API client + Zustand store
 
 **Files:**
+
 - Create: `frontend/src/api/client.ts`
 - Create: `frontend/src/api/transactions.ts`
 - Create: `frontend/src/api/stats.ts`
@@ -2267,54 +2349,57 @@ export default client
 import client from './client'
 
 export interface Transaction {
-  id: string
-  source: string
-  date: string
-  description: string
-  merchant: string
-  amount: string
-  category: string
-  account: string
-  note: string | null
-  created_at: string
-  updated_at: string
+    id: string
+    source: string
+    date: string
+    description: string
+    merchant: string
+    amount: string
+    category: string
+    account: string
+    note: string | null
+    created_at: string
+    updated_at: string
 }
 
 export interface TransactionListResponse {
-  items: Transaction[]
-  total: number
+    items: Transaction[]
+    total: number
 }
 
 export interface TransactionFilters {
-  category?: string
-  start?: string
-  end?: string
-  search?: string
-  limit?: number
-  offset?: number
+    category?: string
+    start?: string
+    end?: string
+    search?: string
+    limit?: number
+    offset?: number
 }
 
 export async function fetchTransactions(filters: TransactionFilters): Promise<TransactionListResponse> {
-  const { data } = await client.get('/transactions', { params: filters })
-  return data
+    const {data} = await client.get('/transactions', {params: filters})
+    return data
 }
 
-export async function updateTransaction(id: string, payload: { category?: string; note?: string }): Promise<Transaction> {
-  const { data } = await client.patch(`/transactions/${id}`, payload)
-  return data
+export async function updateTransaction(id: string, payload: {
+    category?: string;
+    note?: string
+}): Promise<Transaction> {
+    const {data} = await client.patch(`/transactions/${id}`, payload)
+    return data
 }
 
 export async function deleteTransaction(id: string): Promise<void> {
-  await client.delete(`/transactions/${id}`)
+    await client.delete(`/transactions/${id}`)
 }
 
 export function buildExportUrl(filters: TransactionFilters): string {
-  const params = new URLSearchParams()
-  if (filters.category) params.set('category', filters.category)
-  if (filters.start) params.set('start', filters.start)
-  if (filters.end) params.set('end', filters.end)
-  if (filters.search) params.set('search', filters.search)
-  return `/api/v1/export/csv?${params.toString()}`
+    const params = new URLSearchParams()
+    if (filters.category) params.set('category', filters.category)
+    if (filters.start) params.set('start', filters.start)
+    if (filters.end) params.set('end', filters.end)
+    if (filters.search) params.set('search', filters.search)
+    return `/api/v1/export/csv?${params.toString()}`
 }
 ```
 
@@ -2364,29 +2449,29 @@ export const fetchTopMerchants = (f: StatFilters, limit = 10) =>
 import client from './client'
 
 export interface UploadJob {
-  id: string
-  filename: string
-  source: string
-  status: 'pending' | 'processing' | 'completed' | 'failed'
-  error: string | null
-  total_parsed: number | null
-  total_saved: number | null
-  created_at: string
+    id: string
+    filename: string
+    source: string
+    status: 'pending' | 'processing' | 'completed' | 'failed'
+    error: string | null
+    total_parsed: number | null
+    total_saved: number | null
+    created_at: string
 }
 
 export async function uploadFile(file: File, source: string): Promise<UploadJob> {
-  const form = new FormData()
-  form.append('file', file)
-  form.append('source', source)
-  const { data } = await client.post<UploadJob>('/upload', form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
-  return data
+    const form = new FormData()
+    form.append('file', file)
+    form.append('source', source)
+    const {data} = await client.post<UploadJob>('/upload', form, {
+        headers: {'Content-Type': 'multipart/form-data'},
+    })
+    return data
 }
 
 export async function fetchJob(jobId: string): Promise<UploadJob> {
-  const { data } = await client.get<UploadJob>(`/jobs/${jobId}`)
-  return data
+    const {data} = await client.get<UploadJob>(`/jobs/${jobId}`)
+    return data
 }
 ```
 
@@ -2450,6 +2535,7 @@ git commit -m "feat: API client, data fetching functions, Zustand filter store"
 ## Task 14: Frontend — Layout + FilterBar
 
 **Files:**
+
 - Create: `frontend/src/components/Layout.tsx`
 - Create: `frontend/src/components/FilterBar.tsx`
 - Create: `frontend/src/lib/utils.ts`
@@ -2472,115 +2558,154 @@ export function formatCurrency(amount: string | number): string {
 - [ ] **Step 2: Create `frontend/src/components/Layout.tsx`**
 
 ```typescript
-import { Link, Outlet, useLocation } from 'react-router-dom'
-import { BarChart2, CreditCard, Upload } from 'lucide-react'
-import { cn } from '../lib/utils'
+import {Link, Outlet, useLocation} from 'react-router-dom'
+import {BarChart2, CreditCard, Upload} from 'lucide-react'
+import {cn} from '../lib/utils'
 
 const nav = [
-  { to: '/dashboard', label: 'Dashboard', icon: BarChart2 },
-  { to: '/transactions', label: 'Transactions', icon: CreditCard },
-  { to: '/upload', label: 'Upload', icon: Upload },
+    {to: '/dashboard', label: 'Dashboard', icon: BarChart2},
+    {to: '/transactions', label: 'Transactions', icon: CreditCard},
+    {to: '/upload', label: 'Upload', icon: Upload},
 ]
 
 export default function Layout() {
-  const { pathname } = useLocation()
+    const {pathname} = useLocation()
 
-  return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-56 bg-white border-r border-gray-200 flex flex-col">
-        <div className="px-6 py-5 border-b border-gray-200">
-          <h1 className="text-lg font-bold text-brand-600">UPI Tracker</h1>
-          <p className="text-xs text-gray-500 mt-0.5">Expense Manager</p>
-        </div>
-        <nav className="flex-1 p-4 space-y-1">
-          {nav.map(({ to, label, icon: Icon }) => (
-            <Link
-              key={to}
-              to={to}
-              className={cn(
+    return (
+        <div className = "flex h-screen bg-gray-50" >
+            {/* Sidebar */}
+            < aside
+    className = "w-56 bg-white border-r border-gray-200 flex flex-col" >
+    <div className = "px-6 py-5 border-b border-gray-200" >
+    <h1 className = "text-lg font-bold text-brand-600" > UPI
+    Tracker < /h1>
+    < p
+    className = "text-xs text-gray-500 mt-0.5" > Expense
+    Manager < /p>
+    < /div>
+    < nav
+    className = "flex-1 p-4 space-y-1" >
+        {
+            nav.map(({to, label, icon: Icon}) => (
+                <Link
+                    key = {to}
+            to = {to}
+            className = {
+                cn(
                 'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                 pathname === to
-                  ? 'bg-brand-50 text-brand-700'
-                  : 'text-gray-600 hover:bg-gray-100'
-              )}
-            >
-              <Icon size={16} />
-              {label}
-            </Link>
-          ))}
-        </nav>
-      </aside>
+                ? 'bg-brand-50 text-brand-700'
+                : 'text-gray-600 hover:bg-gray-100'
+)
+}
+>
+    <Icon size = {16}
+    />
+    {
+        label
+    }
+    </Link>
+))
+}
+    </nav>
+    < /aside>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <h2 className="text-base font-semibold text-gray-800">
-            {nav.find(n => n.to === pathname)?.label ?? 'UPI Tracker'}
-          </h2>
-        </header>
-        <main className="flex-1 overflow-auto p-6">
-          <Outlet />
+    {/* Main */
+    }
+    <div className = "flex-1 flex flex-col overflow-hidden" >
+    <header className = "bg-white border-b border-gray-200 px-6 py-4" >
+    <h2 className = "text-base font-semibold text-gray-800" >
+        {nav.find(n => n.to === pathname)?.label ?? 'UPI Tracker'}
+        < /h2>
+        < /header>
+        < main
+    className = "flex-1 overflow-auto p-6" >
+        <Outlet / >
         </main>
-      </div>
-    </div>
-  )
+        < /div>
+        < /div>
+)
 }
 ```
 
 - [ ] **Step 3: Create `frontend/src/components/FilterBar.tsx`**
 
 ```typescript
-import { useFilterStore } from '../store/filterStore'
+import {useFilterStore} from '../store/filterStore'
 
 const CATEGORIES = [
-  'Food & Dining', 'Transport', 'Groceries', 'Shopping',
-  'Entertainment', 'Health', 'Utilities', 'Education', 'Finance', 'Uncategorized',
+    'Food & Dining', 'Transport', 'Groceries', 'Shopping',
+    'Entertainment', 'Health', 'Utilities', 'Education', 'Finance', 'Uncategorized',
 ]
 
 export default function FilterBar() {
-  const { category, startDate, endDate, search, setCategory, setStartDate, setEndDate, setSearch, reset } =
-    useFilterStore()
+    const {
+        category,
+        startDate,
+        endDate,
+        search,
+        setCategory,
+        setStartDate,
+        setEndDate,
+        setSearch,
+        reset
+    } =
+        useFilterStore()
 
-  return (
-    <div className="flex flex-wrap gap-3 bg-white p-4 rounded-xl border border-gray-200 mb-5">
-      <input
-        type="text"
-        placeholder="Search transactions..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-brand-500"
-      />
-      <select
-        value={category}
-        onChange={e => setCategory(e.target.value)}
-        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-      >
-        <option value="">All Categories</option>
-        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-      </select>
-      <input
-        type="date"
-        value={startDate}
-        onChange={e => setStartDate(e.target.value)}
-        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-      />
-      <span className="self-center text-gray-400 text-sm">to</span>
-      <input
-        type="date"
-        value={endDate}
-        onChange={e => setEndDate(e.target.value)}
-        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-      />
-      <button
-        onClick={reset}
-        className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-      >
-        Reset
-      </button>
-    </div>
-  )
+    return (
+        <div className = "flex flex-wrap gap-3 bg-white p-4 rounded-xl border border-gray-200 mb-5" >
+        <input
+            type = "text"
+    placeholder = "Search transactions..."
+    value = {search}
+    onChange = {e
+=>
+    setSearch(e.target.value)
 }
+    className = "border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-brand-500"
+    / >
+    <select
+        value = {category}
+    onChange = {e
+=>
+    setCategory(e.target.value)
+}
+    className = "border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+    >
+    <option value = "" > All
+    Categories < /option>
+    {
+        CATEGORIES.map(c => <option key = {c}
+        value = {c} > {c} < /option>)}
+            < /select>
+            < input
+        type = "date"
+        value = {startDate}
+        onChange = {e
+    =>
+        setStartDate(e.target.value)
+    }
+        className = "border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+        / >
+        <span className = "self-center text-gray-400 text-sm" > to < /span>
+            < input
+        type = "date"
+        value = {endDate}
+        onChange = {e
+    =>
+        setEndDate(e.target.value)
+    }
+        className = "border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+        / >
+        <button
+            onClick = {reset}
+        className = "px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+            Reset
+            < /button>
+            < /div>
+    )
+    }
 ```
 
 - [ ] **Step 4: Commit**
@@ -2595,6 +2720,7 @@ git commit -m "feat: Layout sidebar, FilterBar component"
 ## Task 15: Frontend — Dashboard components
 
 **Files:**
+
 - Create: `frontend/src/components/StatsBar.tsx`
 - Create: `frontend/src/components/CategoryChart.tsx`
 - Create: `frontend/src/components/MonthlyChart.tsx`
@@ -2605,152 +2731,333 @@ git commit -m "feat: Layout sidebar, FilterBar component"
 - [ ] **Step 1: Create `frontend/src/components/StatsBar.tsx`**
 
 ```typescript
-import { formatCurrency } from '../lib/utils'
-import type { SummaryStats } from '../api/stats'
+import {formatCurrency} from '../lib/utils'
+import type {SummaryStats} from '../api/stats'
 
-interface Props { data: SummaryStats | undefined; isLoading: boolean }
-
-function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{label}</p>
-      <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
-    </div>
-  )
+interface Props {
+    data: SummaryStats | undefined;
+    isLoading: boolean
 }
 
-export default function StatsBar({ data, isLoading }: Props) {
-  if (isLoading) return <div className="grid grid-cols-4 gap-4 mb-5">{[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-gray-100 rounded-xl animate-pulse" />)}</div>
-  if (!data) return null
-  return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-      <StatCard label="Total Spend" value={formatCurrency(data.total_spend)} />
-      <StatCard label="Transactions" value={data.transaction_count.toString()} />
-      <StatCard label="Avg / Month" value={formatCurrency(data.avg_per_month)} />
-      <StatCard label="Avg / Day" value={formatCurrency(data.avg_per_day)} />
-    </div>
-  )
-}
+function StatCard({label, value, sub}: {
+    label: string;
+    value: string;
+    sub?: string
+}) {
+    return (
+        <div className = "bg-white rounded-xl border border-gray-200 p-5" >
+        <p className = "text-xs text-gray-500 font-medium uppercase tracking-wide" > {label} < /p>
+            < p
+    className = "text-2xl font-bold text-gray-900 mt-1" > {value} < /p>
+    {
+        sub && <p className = "text-xs text-gray-400 mt-1" > {sub} < /p>}
+            < /div>
+    )
+    }
+
+    export default function StatsBar({data, isLoading}: Props) {
+        if (isLoading) return <div className = "grid grid-cols-4 gap-4 mb-5" > {[...Array(4)
+    ].
+        map((_, i) => <div key = {i}
+        className = "h-24 bg-gray-100 rounded-xl animate-pulse" / >
+    )
+    }
+        </div>
+        if (!data) return null
+        return (
+            <div className = "grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5" >
+            <StatCard label = "Total Spend"
+        value = {formatCurrency(data.total_spend
+    )
+    }
+        />
+        < StatCard
+        label = "Transactions"
+        value = {data.transaction_count.toString()}
+        />
+        < StatCard
+        label = "Avg / Month"
+        value = {formatCurrency(data.avg_per_month
+    )
+    }
+        />
+        < StatCard
+        label = "Avg / Day"
+        value = {formatCurrency(data.avg_per_day
+    )
+    }
+        />
+        < /div>
+    )
+    }
 ```
 
 - [ ] **Step 2: Create `frontend/src/components/CategoryChart.tsx`**
 
 ```typescript
-import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
-import type { CategoryStat } from '../api/stats'
-import { formatCurrency } from '../lib/utils'
+import {
+    Cell,
+    Legend,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip
+} from 'recharts'
+import type {CategoryStat} from '../api/stats'
+import {formatCurrency} from '../lib/utils'
 
-const COLORS = ['#0ea5e9','#f59e0b','#10b981','#8b5cf6','#ef4444','#f97316','#06b6d4','#84cc16','#ec4899','#6366f1']
+const COLORS = ['#0ea5e9', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444', '#f97316', '#06b6d4', '#84cc16', '#ec4899', '#6366f1']
 
-interface Props { data: CategoryStat[] | undefined; isLoading: boolean }
-
-export default function CategoryChart({ data, isLoading }: Props) {
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h3 className="text-sm font-semibold text-gray-700 mb-4">Spend by Category</h3>
-      {isLoading ? <div className="h-64 bg-gray-100 rounded animate-pulse" /> : (
-        <ResponsiveContainer width="100%" height={260}>
-          <PieChart>
-            <Pie data={data} dataKey="total" nameKey="category" cx="50%" cy="50%" outerRadius={90} label={({ category, percent }) => `${category} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
-              {data?.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-            </Pie>
-            <Tooltip formatter={(v: number) => formatCurrency(v)} />
-          </PieChart>
-        </ResponsiveContainer>
-      )}
-    </div>
-  )
+interface Props {
+    data: CategoryStat[] | undefined;
+    isLoading: boolean
 }
+
+export default function CategoryChart({data, isLoading}: Props) {
+    return (
+        <div className = "bg-white rounded-xl border border-gray-200 p-5" >
+        <h3 className = "text-sm font-semibold text-gray-700 mb-4" > Spend
+    by
+    Category < /h3>
+    {
+        isLoading ? <div className = "h-64 bg-gray-100 rounded animate-pulse" / > : (
+            <ResponsiveContainer width = "100%"
+        height = {260} >
+        <PieChart>
+            <Pie data = {data}
+        dataKey = "total"
+        nameKey = "category"
+        cx = "50%"
+        cy = "50%"
+        outerRadius = {90}
+        label = {({category, percent})
+    =>
+        `${category} ${(percent * 100).toFixed(0)}%`
+    }
+        labelLine = {false} >
+            {data?.map((_, i) => <Cell key = {i}
+        fill = {COLORS[i % COLORS.length]}
+        />)}
+        < /Pie>
+        < Tooltip
+        formatter = {(v
+    :
+        number
+    ) =>
+        formatCurrency(v)
+    }
+        />
+        < /PieChart>
+        < /ResponsiveContainer>
+    )
+    }
+        </div>
+    )
+    }
 ```
 
 - [ ] **Step 3: Create `frontend/src/components/MonthlyChart.tsx`**
 
 ```typescript
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import type { MonthStat } from '../api/stats'
-import { formatCurrency } from '../lib/utils'
+import {
+    CartesianGrid,
+    Line,
+    LineChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis
+} from 'recharts'
+import type {MonthStat} from '../api/stats'
+import {formatCurrency} from '../lib/utils'
 
-interface Props { data: MonthStat[] | undefined; isLoading: boolean }
+interface Props {
+    data: MonthStat[] | undefined;
+    isLoading: boolean
+}
 
-export default function MonthlyChart({ data, isLoading }: Props) {
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h3 className="text-sm font-semibold text-gray-700 mb-4">Monthly Spend Trend</h3>
-      {isLoading ? <div className="h-64 bg-gray-100 rounded animate-pulse" /> : (
-        <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 12 }} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
-            <Tooltip formatter={(v: number) => formatCurrency(v)} />
-            <Line type="monotone" dataKey="total" stroke="#0ea5e9" strokeWidth={2} dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
-      )}
+export default function MonthlyChart({data, isLoading}: Props) {
+    return (
+        <div className = "bg-white rounded-xl border border-gray-200 p-5" >
+        <h3 className = "text-sm font-semibold text-gray-700 mb-4" > Monthly
+    Spend
+    Trend < /h3>
+    {
+        isLoading ? <div className = "h-64 bg-gray-100 rounded animate-pulse" / > : (
+            <ResponsiveContainer width = "100%"
+        height = {260} >
+        <LineChart data = {data} >
+        <CartesianGrid strokeDasharray = "3 3"
+        stroke = "#f0f0f0" / >
+        <XAxis dataKey = "month"
+        tick = {
+        {
+            fontSize: 12
+        }
+    }
+        />
+        < YAxis
+        tick = {
+        {
+            fontSize: 12
+        }
+    }
+        tickFormatter = {v
+    =>
+        `₹${(v / 1000).toFixed(0)}k`
+    }
+        />
+        < Tooltip
+        formatter = {(v
+    :
+        number
+    ) =>
+        formatCurrency(v)
+    }
+        />
+        < Line
+        type = "monotone"
+        dataKey = "total"
+        stroke = "#0ea5e9"
+        strokeWidth = {2}
+        dot = {false}
+        />
+        < /LineChart>
+        < /ResponsiveContainer>
+    )
+    }
     </div>
-  )
+)
 }
 ```
 
 - [ ] **Step 4: Create `frontend/src/components/DailyChart.tsx`**
 
 ```typescript
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import type { DayStat } from '../api/stats'
-import { formatCurrency } from '../lib/utils'
+import {
+    Bar,
+    BarChart,
+    CartesianGrid,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis
+} from 'recharts'
+import type {DayStat} from '../api/stats'
+import {formatCurrency} from '../lib/utils'
 
-interface Props { data: DayStat[] | undefined; isLoading: boolean }
+interface Props {
+    data: DayStat[] | undefined;
+    isLoading: boolean
+}
 
-export default function DailyChart({ data, isLoading }: Props) {
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h3 className="text-sm font-semibold text-gray-700 mb-4">Daily Breakdown</h3>
-      {isLoading ? <div className="h-64 bg-gray-100 rounded animate-pulse" /> : (
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="day" tick={{ fontSize: 10 }} tickFormatter={d => d.slice(5)} />
-            <YAxis tick={{ fontSize: 12 }} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
-            <Tooltip formatter={(v: number) => formatCurrency(v)} />
-            <Bar dataKey="total" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      )}
+export default function DailyChart({data, isLoading}: Props) {
+    return (
+        <div className = "bg-white rounded-xl border border-gray-200 p-5" >
+        <h3 className = "text-sm font-semibold text-gray-700 mb-4" > Daily
+    Breakdown < /h3>
+    {
+        isLoading ? <div className = "h-64 bg-gray-100 rounded animate-pulse" / > : (
+            <ResponsiveContainer width = "100%"
+        height = {260} >
+        <BarChart data = {data} >
+        <CartesianGrid strokeDasharray = "3 3"
+        stroke = "#f0f0f0" / >
+        <XAxis dataKey = "day"
+        tick = {
+        {
+            fontSize: 10
+        }
+    }
+        tickFormatter = {d
+    =>
+        d.slice(5)
+    }
+        />
+        < YAxis
+        tick = {
+        {
+            fontSize: 12
+        }
+    }
+        tickFormatter = {v
+    =>
+        `₹${(v / 1000).toFixed(0)}k`
+    }
+        />
+        < Tooltip
+        formatter = {(v
+    :
+        number
+    ) =>
+        formatCurrency(v)
+    }
+        />
+        < Bar
+        dataKey = "total"
+        fill = "#0ea5e9"
+        radius = {[4, 4, 0, 0
+    ]
+    }
+        />
+        < /BarChart>
+        < /ResponsiveContainer>
+    )
+    }
     </div>
-  )
+)
 }
 ```
 
 - [ ] **Step 5: Create `frontend/src/components/TopMerchants.tsx`**
 
 ```typescript
-import type { MerchantStat } from '../api/stats'
-import { formatCurrency } from '../lib/utils'
+import type {MerchantStat} from '../api/stats'
+import {formatCurrency} from '../lib/utils'
 
-interface Props { data: MerchantStat[] | undefined; isLoading: boolean }
+interface Props {
+    data: MerchantStat[] | undefined;
+    isLoading: boolean
+}
 
-export default function TopMerchants({ data, isLoading }: Props) {
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h3 className="text-sm font-semibold text-gray-700 mb-4">Top Merchants</h3>
-      {isLoading ? (
-        <div className="space-y-2">{[...Array(5)].map((_, i) => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}</div>
-      ) : (
-        <ul className="space-y-2">
-          {data?.map((m, i) => (
-            <li key={m.merchant} className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-brand-50 text-brand-600 text-xs flex items-center justify-center font-bold">{i + 1}</span>
-                <span className="text-gray-700">{m.merchant}</span>
-              </span>
-              <span className="font-semibold text-gray-900">{formatCurrency(m.total)}</span>
-            </li>
-          ))}
+export default function TopMerchants({data, isLoading}: Props) {
+    return (
+        <div className = "bg-white rounded-xl border border-gray-200 p-5" >
+        <h3 className = "text-sm font-semibold text-gray-700 mb-4" > Top
+    Merchants < /h3>
+    {
+        isLoading ? (
+            <div className = "space-y-2" > {[...Array(5)
+    ].
+        map((_, i) => <div key = {i}
+        className = "h-8 bg-gray-100 rounded animate-pulse" / >
+    )
+    }
+        </div>
+    ) :
+        (
+            <ul className = "space-y-2" >
+                {data?.map((m, i) => (
+                    <li key = {m.merchant}
+        className = "flex items-center justify-between text-sm" >
+        <span className = "flex items-center gap-2" >
+        <span className = "w-5 h-5 rounded-full bg-brand-50 text-brand-600 text-xs flex items-center justify-center font-bold" > {i +1} < /span>
+            < span
+        className = "text-gray-700" > {m.merchant} < /span>
+            < /span>
+            < span
+        className = "font-semibold text-gray-900" > {formatCurrency(m.total
+    )
+    }
+        </span>
+        < /li>
+    ))
+    }
         </ul>
-      )}
+    )
+    }
     </div>
-  )
+)
 }
 ```
 
@@ -2807,6 +3114,7 @@ git commit -m "feat: Dashboard page — StatsBar, charts, TopMerchants"
 ## Task 16: Frontend — Transactions page + Upload page
 
 **Files:**
+
 - Create: `frontend/src/components/TransactionTable.tsx`
 - Create: `frontend/src/components/DropZone.tsx`
 - Create: `frontend/src/components/UploadProgress.tsx`
@@ -2816,302 +3124,469 @@ git commit -m "feat: Dashboard page — StatsBar, charts, TopMerchants"
 - [ ] **Step 1: Create `frontend/src/components/TransactionTable.tsx`**
 
 ```typescript
-import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Trash2 } from 'lucide-react'
-import { deleteTransaction, fetchTransactions, updateTransaction } from '../api/transactions'
-import { useFilterStore } from '../store/filterStore'
-import { formatCurrency } from '../lib/utils'
+import {useState} from 'react'
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
+import {Trash2} from 'lucide-react'
+import {
+    deleteTransaction,
+    fetchTransactions,
+    updateTransaction
+} from '../api/transactions'
+import {useFilterStore} from '../store/filterStore'
+import {formatCurrency} from '../lib/utils'
 
-const CATEGORIES = ['Food & Dining','Transport','Groceries','Shopping','Entertainment','Health','Utilities','Education','Finance','Uncategorized']
+const CATEGORIES = ['Food & Dining', 'Transport', 'Groceries', 'Shopping', 'Entertainment', 'Health', 'Utilities', 'Education', 'Finance', 'Uncategorized']
 
 export default function TransactionTable() {
-  const filters = useFilterStore(s => s.toParams())
-  const qc = useQueryClient()
-  const [page, setPage] = useState(0)
-  const limit = 50
+    const filters = useFilterStore(s => s.toParams())
+    const qc = useQueryClient()
+    const [page, setPage] = useState(0)
+    const limit = 50
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['transactions', filters, page],
-    queryFn: () => fetchTransactions({ ...filters, limit, offset: page * limit }),
-  })
+    const {data, isLoading} = useQuery({
+        queryKey: ['transactions', filters, page],
+        queryFn: () => fetchTransactions({
+            ...filters,
+            limit,
+            offset: page * limit
+        }),
+    })
 
-  const deleteMut = useMutation({
-    mutationFn: deleteTransaction,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['transactions'] }),
-  })
+    const deleteMut = useMutation({
+        mutationFn: deleteTransaction,
+        onSuccess: () => qc.invalidateQueries({queryKey: ['transactions']}),
+    })
 
-  const updateMut = useMutation({
-    mutationFn: ({ id, category }: { id: string; category: string }) => updateTransaction(id, { category }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['transactions'] }),
-  })
+    const updateMut = useMutation({
+        mutationFn: ({id, category}: {
+            id: string;
+            category: string
+        }) => updateTransaction(id, {category}),
+        onSuccess: () => qc.invalidateQueries({queryKey: ['transactions']}),
+    })
 
-  if (isLoading) return <div className="h-96 bg-gray-100 rounded-xl animate-pulse" />
+    if (isLoading) return <div className = "h-96 bg-gray-100 rounded-xl animate-pulse" / >
 
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+    return (
+        <div className = "bg-white rounded-xl border border-gray-200 overflow-hidden" >
+        <div className = "overflow-x-auto" >
+        <table className = "w-full text-sm" >
+        <thead className = "bg-gray-50 border-b border-gray-200" >
             <tr>
-              {['Date','Description','Merchant','Amount','Category','Account',''].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {data?.items.map(txn => (
-              <tr key={txn.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 whitespace-nowrap text-gray-600">{txn.date}</td>
-                <td className="px-4 py-3 text-gray-900 max-w-xs truncate">{txn.description}</td>
-                <td className="px-4 py-3 text-gray-600">{txn.merchant}</td>
-                <td className="px-4 py-3 font-semibold text-gray-900">{formatCurrency(txn.amount)}</td>
-                <td className="px-4 py-3">
-                  <select
-                    value={txn.category}
-                    onChange={e => updateMut.mutate({ id: txn.id, category: e.target.value })}
-                    className="text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
-                  >
-                    {CATEGORIES.map(c => <option key={c}>{c}</option>)}
-                  </select>
-                </td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{txn.account}</td>
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => deleteMut.mutate(txn.id)}
-                    className="text-gray-400 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {data && data.total > limit && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 text-sm">
-          <span className="text-gray-500">Showing {page * limit + 1}–{Math.min((page + 1) * limit, data.total)} of {data.total}</span>
-          <div className="flex gap-2">
-            <button onClick={() => setPage(p => p - 1)} disabled={page === 0} className="px-3 py-1 border rounded disabled:opacity-40">Prev</button>
-            <button onClick={() => setPage(p => p + 1)} disabled={(page + 1) * limit >= data.total} className="px-3 py-1 border rounded disabled:opacity-40">Next</button>
-          </div>
-        </div>
-      )}
+                {
+                    ['Date',
+                    'Description',
+                    'Merchant',
+                    'Amount',
+                    'Category',
+                    'Account',
+                    ''
+].
+    map(h => (
+        <th key = {h}
+    className = "px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide" > {h} < /th>
+))
+}
+    </tr>
+    < /thead>
+    < tbody
+    className = "divide-y divide-gray-100" >
+        {data?.items.map(txn => (
+            <tr key = {txn.id}
+    className = "hover:bg-gray-50" >
+    <td className = "px-4 py-3 whitespace-nowrap text-gray-600" > {
+            txn
+            .date
+        } < /td>
+        < td
+    className = "px-4 py-3 text-gray-900 max-w-xs truncate" > {
+            txn
+            .description
+        } < /td>
+        < td
+    className = "px-4 py-3 text-gray-600" > {txn.merchant} < /td>
+        < td
+    className = "px-4 py-3 font-semibold text-gray-900" > {
+        formatCurrency(txn
+        .amount
+)
+}
+    </td>
+    < td
+    className = "px-4 py-3" >
+    <select
+        value = {txn.category}
+    onChange = {e
+=>
+    updateMut.mutate({id: txn.id, category: e.target.value})
+}
+    className = "text-xs border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+        >
+        {
+            CATEGORIES
+            .map(c => <option key = {c} > {c} < /option>)}
+                < /select>
+                < /td>
+                < td
+            className = "px-4 py-3 text-gray-500 text-xs" > {
+                    txn
+                    .account
+                } < /td>
+                < td
+            className = "px-4 py-3" >
+            <button
+                onClick = {()
+=>
+    deleteMut.mutate(txn.id)
+}
+    className = "text-gray-400 hover:text-red-500 transition-colors"
+    >
+    <Trash2 size = {14}
+    />
+    < /button>
+    < /td>
+    < /tr>
+))
+}
+    </tbody>
+    < /table>
+    < /div>
+    {
+        data && data.total > limit && (
+            <div className = "flex items-center justify-between px-4 py-3 border-t border-gray-200 text-sm" >
+            <span className = "text-gray-500" > Showing
+        {
+            page * limit + 1
+        }–{
+        Math.min((page + 1) * limit, data.total)
+    }
+        of
+        {
+            data.total
+        }
+        </span>
+        < div
+        className = "flex gap-2" >
+        <button onClick = {()
+    =>
+        setPage(p => p - 1)
+    }
+        disabled = {page === 0
+    }
+        className = "px-3 py-1 border rounded disabled:opacity-40" > Prev < /button>
+            < button
+        onClick = {()
+    =>
+        setPage(p => p + 1)
+    }
+        disabled = {(page + 1) * limit >= data.total
+    }
+        className = "px-3 py-1 border rounded disabled:opacity-40" > Next < /button>
+            < /div>
+            < /div>
+    )
+    }
     </div>
-  )
+)
 }
 ```
 
 - [ ] **Step 2: Create `frontend/src/pages/Transactions.tsx`**
 
 ```typescript
-import { Download } from 'lucide-react'
-import { buildExportUrl } from '../api/transactions'
+import {Download} from 'lucide-react'
+import {buildExportUrl} from '../api/transactions'
 import FilterBar from '../components/FilterBar'
 import TransactionTable from '../components/TransactionTable'
-import { useFilterStore } from '../store/filterStore'
+import {useFilterStore} from '../store/filterStore'
 
 export default function Transactions() {
-  const filters = useFilterStore(s => s.toParams())
+    const filters = useFilterStore(s => s.toParams())
 
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-base font-semibold text-gray-800">All Transactions</h2>
-        <a
-          href={buildExportUrl(filters)}
-          download="transactions.csv"
-          className="flex items-center gap-2 px-4 py-2 text-sm bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
-        >
-          <Download size={14} /> Export CSV
-        </a>
-      </div>
-      <FilterBar />
-      <TransactionTable />
+    return (
+        <div>
+            <div className = "flex justify-between items-center mb-4" >
+        <h2 className = "text-base font-semibold text-gray-800" > All
+    Transactions < /h2>
+    < a
+    href = {buildExportUrl(filters)}
+    download = "transactions.csv"
+    className = "flex items-center gap-2 px-4 py-2 text-sm bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
+    >
+    <Download size = {14}
+    /> Export CSV
+    < /a>
+    < /div>
+    < FilterBar / >
+    <TransactionTable / >
     </div>
-  )
+)
 }
 ```
 
 - [ ] **Step 3: Create `frontend/src/components/DropZone.tsx`**
 
 ```typescript
-import { useCallback, useState } from 'react'
-import { Upload } from 'lucide-react'
-import { cn } from '../lib/utils'
+import {useCallback, useState} from 'react'
+import {Upload} from 'lucide-react'
+import {cn} from '../lib/utils'
 
 interface Props {
-  onFile: (file: File) => void
+    onFile: (file: File) => void
 }
 
-export default function DropZone({ onFile }: Props) {
-  const [dragging, setDragging] = useState(false)
+export default function DropZone({onFile}: Props) {
+    const [dragging, setDragging] = useState(false)
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
+    const handleDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault()
+        setDragging(false)
+        const file = e.dataTransfer.files[0]
+        if (file?.type === 'application/pdf') onFile(file)
+    }, [onFile])
+
+    return (
+        <label
+            onDragOver = {e
+=>
+    {
+        e.preventDefault();
+        setDragging(true)
+    }
+}
+    onDragLeave = {()
+=>
     setDragging(false)
-    const file = e.dataTransfer.files[0]
-    if (file?.type === 'application/pdf') onFile(file)
-  }, [onFile])
-
-  return (
-    <label
-      onDragOver={e => { e.preventDefault(); setDragging(true) }}
-      onDragLeave={() => setDragging(false)}
-      onDrop={handleDrop}
-      className={cn(
+}
+    onDrop = {handleDrop}
+    className = {
+        cn(
         'flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-12 cursor-pointer transition-colors',
         dragging ? 'border-brand-500 bg-brand-50' : 'border-gray-300 hover:border-brand-400 hover:bg-gray-50'
-      )}
-    >
-      <Upload size={32} className="text-gray-400 mb-3" />
-      <p className="text-sm font-medium text-gray-700">Drop your PDF here</p>
-      <p className="text-xs text-gray-400 mt-1">or click to browse</p>
-      <input
-        type="file"
-        accept="application/pdf"
-        className="hidden"
-        onChange={e => { const f = e.target.files?.[0]; if (f) onFile(f) }}
-      />
-    </label>
-  )
+)
+}
+>
+    <Upload size = {32}
+    className = "text-gray-400 mb-3" / >
+    <p className = "text-sm font-medium text-gray-700" > Drop
+    your
+    PDF
+    here < /p>
+    < p
+    className = "text-xs text-gray-400 mt-1" > or
+    click
+    to
+    browse < /p>
+    < input
+    type = "file"
+    accept = "application/pdf"
+    className = "hidden"
+    onChange = {e
+=>
+    {
+        const f = e.target.files?.[0];
+        if (f) onFile(f)
+    }
+}
+    />
+    < /label>
+)
 }
 ```
 
 - [ ] **Step 4: Create `frontend/src/components/UploadProgress.tsx`**
 
 ```typescript
-import { useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { CheckCircle, XCircle, Loader } from 'lucide-react'
-import { fetchJob, type UploadJob } from '../api/upload'
+import {useEffect} from 'react'
+import {useQuery} from '@tanstack/react-query'
+import {CheckCircle, XCircle, Loader} from 'lucide-react'
+import {fetchJob, type UploadJob} from '../api/upload'
 
-interface Props { jobId: string; onComplete: (job: UploadJob) => void }
+interface Props {
+    jobId: string;
+    onComplete: (job: UploadJob) => void
+}
 
-export default function UploadProgress({ jobId, onComplete }: Props) {
-  const { data: job } = useQuery({
-    queryKey: ['job', jobId],
-    queryFn: () => fetchJob(jobId),
-    refetchInterval: (q) => {
-      const status = q.state.data?.status
-      return status === 'completed' || status === 'failed' ? false : 1500
-    },
-  })
+export default function UploadProgress({jobId, onComplete}: Props) {
+    const {data: job} = useQuery({
+        queryKey: ['job', jobId],
+        queryFn: () => fetchJob(jobId),
+        refetchInterval: (q) => {
+            const status = q.state.data?.status
+            return status === 'completed' || status === 'failed' ? false : 1500
+        },
+    })
 
-  useEffect(() => {
-    if (job?.status === 'completed' || job?.status === 'failed') onComplete(job)
-  }, [job, onComplete])
+    useEffect(() => {
+        if (job?.status === 'completed' || job?.status === 'failed') onComplete(job)
+    }, [job, onComplete])
 
-  if (!job) return <div className="flex items-center gap-2 text-sm text-gray-500"><Loader size={14} className="animate-spin" /> Starting...</div>
-
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-      <div className="flex items-center gap-2">
-        {job.status === 'completed' && <CheckCircle size={18} className="text-green-500" />}
-        {job.status === 'failed' && <XCircle size={18} className="text-red-500" />}
-        {(job.status === 'pending' || job.status === 'processing') && <Loader size={18} className="animate-spin text-brand-500" />}
-        <span className="text-sm font-medium capitalize">{job.status}</span>
-      </div>
-      {job.status === 'completed' && (
-        <div className="text-sm text-gray-600 space-y-1">
-          <p>Parsed: <strong>{job.total_parsed}</strong> rows</p>
-          <p>Saved: <strong>{job.total_saved}</strong> transactions</p>
-          <p>Skipped: <strong>{(job.total_parsed ?? 0) - (job.total_saved ?? 0)}</strong> (filtered out)</p>
-        </div>
-      )}
-      {job.status === 'failed' && (
-        <p className="text-sm text-red-600">{job.error}</p>
-      )}
+    if (!job) return <div className = "flex items-center gap-2 text-sm text-gray-500" > <Loader size = {14}
+    className = "animate-spin" / > Starting
+...
     </div>
-  )
+
+    return (
+        <div className = "bg-white rounded-xl border border-gray-200 p-5 space-y-3" >
+        <div className = "flex items-center gap-2" >
+            {
+                job
+                .status === 'completed' && <CheckCircle size = {18}
+                className = "text-green-500" / >
+            }
+    {
+        job.status === 'failed' && <XCircle size = {18}
+        className = "text-red-500" / >
+    }
+    {
+        (job.status === 'pending' || job.status === 'processing') && <Loader size = {18}
+        className = "animate-spin text-brand-500" / >
+    }
+    <span className = "text-sm font-medium capitalize" > {job.status} < /span>
+        < /div>
+    {
+        job.status === 'completed' && (
+            <div className = "text-sm text-gray-600 space-y-1" >
+                <p>Parsed
+    :
+        <strong>{job.total_parsed} < /strong> rows</
+        p >
+        <p>Saved
+    :
+        <strong>{job.total_saved} < /strong> transactions</
+        p >
+        <p>Skipped
+    :
+        <strong>{(job.total_parsed ?? 0) - (job.total_saved ?? 0)
+    }
+        </strong> (filtered out)</
+        p >
+        </div>
+    )
+    }
+    {
+        job.status === 'failed' && (
+            <p className = "text-sm text-red-600" > {job.error} < /p>
+        )
+    }
+    </div>
+)
 }
 ```
 
 - [ ] **Step 5: Create `frontend/src/pages/Upload.tsx`**
 
 ```typescript
-import { useCallback, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import {useCallback, useState} from 'react'
+import {useQueryClient} from '@tanstack/react-query'
 import DropZone from '../components/DropZone'
 import UploadProgress from '../components/UploadProgress'
-import { uploadFile, type UploadJob } from '../api/upload'
+import {uploadFile, type UploadJob} from '../api/upload'
 
 const SOURCES = [
-  { value: 'navi', label: 'Navi' },
-  { value: 'phonepe', label: 'PhonePe' },
-  { value: 'googlepay', label: 'Google Pay' },
+    {value: 'navi', label: 'Navi'},
+    {value: 'phonepe', label: 'PhonePe'},
+    {value: 'googlepay', label: 'Google Pay'},
 ]
 
 export default function Upload() {
-  const qc = useQueryClient()
-  const [source, setSource] = useState('navi')
-  const [jobId, setJobId] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+    const qc = useQueryClient()
+    const [source, setSource] = useState('navi')
+    const [jobId, setJobId] = useState<string | null>(null)
+    const [uploading, setUploading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
-  const handleFile = useCallback(async (file: File) => {
-    setError(null)
-    setJobId(null)
-    setUploading(true)
-    try {
-      const job = await uploadFile(file, source)
-      setJobId(job.id)
-    } catch {
-      setError('Upload failed. Please try again.')
-    } finally {
-      setUploading(false)
-    }
-  }, [source])
+    const handleFile = useCallback(async (file: File) => {
+        setError(null)
+        setJobId(null)
+        setUploading(true)
+        try {
+            const job = await uploadFile(file, source)
+            setJobId(job.id)
+        } catch {
+            setError('Upload failed. Please try again.')
+        } finally {
+            setUploading(false)
+        }
+    }, [source])
 
-  const handleComplete = useCallback((job: UploadJob) => {
-    if (job.status === 'completed') {
-      qc.invalidateQueries({ queryKey: ['transactions'] })
-      qc.invalidateQueries({ queryKey: ['summary'] })
-      qc.invalidateQueries({ queryKey: ['byCategory'] })
-      qc.invalidateQueries({ queryKey: ['byMonth'] })
-      qc.invalidateQueries({ queryKey: ['byDay'] })
-      qc.invalidateQueries({ queryKey: ['topMerchants'] })
-    }
-  }, [qc])
+    const handleComplete = useCallback((job: UploadJob) => {
+        if (job.status === 'completed') {
+            qc.invalidateQueries({queryKey: ['transactions']})
+            qc.invalidateQueries({queryKey: ['summary']})
+            qc.invalidateQueries({queryKey: ['byCategory']})
+            qc.invalidateQueries({queryKey: ['byMonth']})
+            qc.invalidateQueries({queryKey: ['byDay']})
+            qc.invalidateQueries({queryKey: ['topMerchants']})
+        }
+    }, [qc])
 
-  return (
-    <div className="max-w-xl mx-auto space-y-5">
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Select App</h3>
-        <div className="flex gap-2">
-          {SOURCES.map(s => (
-            <button
-              key={s.value}
-              onClick={() => setSource(s.value)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                source === s.value
-                  ? 'bg-brand-600 text-white border-brand-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {!jobId && !uploading && <DropZone onFile={handleFile} />}
-      {uploading && <p className="text-sm text-gray-500 text-center">Uploading...</p>}
-      {error && <p className="text-sm text-red-500 text-center">{error}</p>}
-      {jobId && <UploadProgress jobId={jobId} onComplete={handleComplete} />}
-
-      {jobId && (
-        <button
-          onClick={() => { setJobId(null); setError(null) }}
-          className="w-full py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
-        >
-          Upload Another File
-        </button>
-      )}
-    </div>
-  )
+    return (
+        <div className = "max-w-xl mx-auto space-y-5" >
+        <div className = "bg-white rounded-xl border border-gray-200 p-5" >
+        <h3 className = "text-sm font-semibold text-gray-700 mb-3" > Select
+    App < /h3>
+    < div
+    className = "flex gap-2" >
+        {
+            SOURCES.map(s => (
+                <button
+                    key = {s.value}
+            onClick = {()
+=>
+    setSource(s.value)
 }
+    className = {`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+        source === s.value
+            ? 'bg-brand-600 text-white border-brand-600'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+    }`
+}
+>
+    {
+        s.label
+    }
+    </button>
+))
+}
+    </div>
+    < /div>
+
+    {
+        !jobId && !uploading && <DropZone onFile = {handleFile}
+        />}
+        {
+            uploading && <p className = "text-sm text-gray-500 text-center" > Uploading
+        ...
+            </p>}
+            {
+                error && <p className = "text-sm text-red-500 text-center" > {error} < /p>}
+                {
+                    jobId && <UploadProgress jobId = {jobId}
+                    onComplete = {handleComplete}
+                    />}
+
+                    {
+                        jobId && (
+                            <button
+                                onClick = {()
+                    =>
+                        {
+                            setJobId(null);
+                            setError(null)
+                        }
+                    }
+                        className = "w-full py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                            >
+                            Upload
+                        Another
+                        File
+                        < /button>
+                    )
+                    }
+                    </div>
+                )
+                }
 ```
 
 - [ ] **Step 6: Build and verify no TypeScript errors**
@@ -3134,6 +3609,7 @@ git commit -m "feat: Transactions page, Upload page with job polling"
 ## Task 17: End-to-end wiring + smoke test
 
 **Files:**
+
 - Create: `.env` (from `.env.example`, not committed)
 
 - [ ] **Step 1: Create local `.env`**
@@ -3149,6 +3625,7 @@ docker compose up --build
 ```
 
 Wait for all services healthy. Expected output:
+
 ```
 backend-1   | Application startup complete.
 worker-1    | Starting worker for functions: process_pdf
@@ -3179,6 +3656,7 @@ curl http://localhost:8000/api/v1/stats/summary
 - [ ] **Step 5: Smoke test frontend**
 
 Open `http://localhost:3000` in browser.
+
 - Dashboard loads with empty charts (no errors in console)
 - Transactions page loads empty table
 - Upload page shows source selector + drop zone
@@ -3220,6 +3698,10 @@ When the user shares their Excel categorization sheet:
 2. For each row in the sheet, identify the keyword and target category
 3. Add keywords to the matching list in `CATEGORY_RULES`
 4. Run `pytest tests/test_categorizer.py -v` after each category block updated
-5. Commit: `git commit -m "feat: expand categorization keywords from reference data"`
+5. Commit:
+   `git commit -m "feat: expand categorization keywords from reference data"`
 
-**Parser tuning:** Real Navi/PhonePe/GPay PDFs will likely need regex adjustments in `backend/app/parsers/`. The pattern in each parser file is the first thing to tune when a PDF fails to parse — check `job.error` in the DB or worker logs for the raw exception.
+**Parser tuning:** Real Navi/PhonePe/GPay PDFs will likely need regex
+adjustments in `backend/app/parsers/`. The pattern in each parser file is the
+first thing to tune when a PDF fails to parse — check `job.error` in the DB or
+worker logs for the raw exception.

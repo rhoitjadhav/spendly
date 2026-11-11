@@ -31,9 +31,10 @@ class PhonePeParser(BaseParser):
             try:
                 txn_date = datetime.strptime(date_str.strip(), "%d %b %Y %H:%M").date()
                 amount = Decimal(amount_str)
-                if direction == "Dr" and amount > 0:
-                    amount = -amount
-                elif direction == "Cr" and amount < 0:
+                if (
+                    direction == "Dr" and amount > 0
+                    or direction == "Cr" and amount < 0
+                ):
                     amount = -amount
             except (ValueError, InvalidOperation):
                 continue

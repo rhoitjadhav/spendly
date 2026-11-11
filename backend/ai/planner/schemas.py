@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, timedelta, timezone
 from enum import StrEnum
 
 from pydantic import BaseModel, Field

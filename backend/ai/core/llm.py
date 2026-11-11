@@ -1,4 +1,4 @@
-from core.constants import ModelProvider
+from ai.core.constants import ModelProvider
 from langchain.chat_models import init_chat_model
 from langchain_core.language_models import BaseChatModel
 from pydantic import BaseModel

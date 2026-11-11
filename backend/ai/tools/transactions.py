@@ -3,12 +3,21 @@ from langchain_core.tools import tool
 
 class TransactionsTools:
     @tool
-    def get_total_spending(self, start_date, end_date):
-        """Total spent + transaction count in a range.
-        e.g. "How much did I spend last month?" """
+    def get_total_spending(self, start_date, end_date) -> int:
+        """Get total spending based on start and end period
+        e.g. How much did I spend last month?
+        Args:
+            start_date (str): First period (dd-mm-yyyy).
+            end_date (str): Last period (dd-mm-yyyy).
+
+        Returns:
+            Total spending for the given period
+        """
 
     @tool
-    def get_category_breakdown(self, start_date, end_date, category=None):
+    def get_category_breakdown(
+        self, start_date: str, end_date: str, category: str = None
+    ):
         """Spend per category, sorted desc. Optional filter to one category.
         e.g. "Where does my money go?" / "How much on Food?" """
 
@@ -18,9 +27,13 @@ class TransactionsTools:
         Mirrors your backend MonthSnapshot. e.g. "Overview of October" """
 
     @tool
-    def compare_periods(self, period_a, period_b):
+    def compare_periods(self, period_a: str, period_b: str):
         """Per-category totals for two periods + deltas computed in SQL.
         e.g. "This month vs last month".
+        Args:
+            period_a (str): First period (dd-mm-yyyy).
+            period_b (str): Second period (dd-mm-yyyy)
+
         (Composite on purpose: deltas in SQL beat arithmetic by a 9B local model.)"""
 
     @tool

@@ -1,13 +1,13 @@
 from datetime import datetime, timedelta
 
-from base_agent import BaseAgent
-from common.schemas import ModelQueryRequest
-from core.constants import ModelProvider
-from core.llm import LLM
+from ai.base_agent import BaseAgent
+from ai.common.schemas import ModelQueryRequest
+from ai.core.constants import ModelProvider
+from ai.core.llm import LLM
+from ai.planner.constants import PLANNER_AGENT_SYSTEM_PROMPT
+from ai.planner.schemas import IST, DateContext
+from ai.tools import default_tools, lending_tools, transaction_tools
 from langchain_core.messages import HumanMessage, SystemMessage, ToolCall
-from planner.constants import PLANNER_AGENT_SYSTEM_PROMPT
-from planner.schemas import IST, DateContext, GatekeeperAgentResponse
-from tools import default_tools, lending_tools, transaction_tools
 
 
 class PlannerAgent(BaseAgent):
@@ -17,7 +17,9 @@ class PlannerAgent(BaseAgent):
     provider = ModelProvider.OLLAMA
 
     def __init__(self):
-        self._llm_client = LLM(self.model, self.provider).get_llm_client()
+        self._llm_client = LLM(
+            self.model, self.provider, temperature=0.0
+        ).get_llm_client()
 
     def _format_planner_prompt(self) -> str:
         """Defaults to 'now' in IST — servers run UTC, and 'this month'

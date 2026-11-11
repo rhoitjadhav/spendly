@@ -60,7 +60,7 @@ services:
     command: python -m arq app.workers.pdf_worker.WorkerSettings
 
   agent:
-    build: ./ai
+    build: backend/ai
     ports:
       - "8100:8100"
     depends_on:

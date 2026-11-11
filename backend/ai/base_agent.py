@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from common.schemas import ModelQueryRequest
+from ai.common.schemas import ModelQueryRequest
 
 
 class BaseAgent(ABC):
