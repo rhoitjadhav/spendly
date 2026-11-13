@@ -62,9 +62,16 @@ class TransactionsTools:
             return session.execute(stmt).all()
 
     @tool
-    def get_summary(self, month=None, year=None):  # "YYYY-MM"
+    def get_summary(self, month: str = None, year: str = None):
         """Composite month card: total, count, top category, top merchant, avg/day.
-        Mirrors your backend MonthSnapshot. e.g. "Overview of October" """
+        Mirrors your backend MonthSnapshot. e.g. "Overview of October"
+
+        Args:
+            month (str): Month (mm-yyyy).
+            year (str): Year (yyyy).
+
+        """
+        stmt = select()
 
     @tool
     def compare_periods(self, period_a: str, period_b: str):
@@ -77,23 +84,21 @@ class TransactionsTools:
         (Composite on purpose: deltas in SQL beat arithmetic by a 9B local model.)"""
 
     @tool
-    def get_top_merchants(self, start_date, end_date, limit=5):
+    async def get_top_merchants(self, start_date, end_date, limit=5):
         """Top N merchants by spend. e.g. "Where did most of my money go?" """
+        stmt = (
+            select(
+                Transaction.merchant,
+                func.coalesce(func.sum(Transaction.amount), 0).label("total_amount"),
+            )
+            .group_by(Transaction.merchant)
+            .order_by(Transaction.amount.desc())
+            .where(Transaction.date.between(start_date, end_date))
+            .limit(limit)
+        )
 
-    @tool
-    def search_transactions(
-        self,
-        category=None,
-        merchant=None,
-        date_from=None,
-        date_to=None,
-        min_amount=None,
-        max_amount=None,
-        keyword=None,
-        limit=20,
-    ):
-        """List matching transactions, newest first.
-        e.g. "Show my Swiggy orders this month" / "my 10 recent transactions" """
+        async with AsyncSessionLocal() as session:
+            return session.execute(stmt).all()
 
     @tool
     def get_spending_average(self, start_date, end_date) -> dict:
